@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quota Vita · Simulació d'obradors (radi 40 km · sèrum)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#161d26; --panel2:#1d2731; --line:#2a3845;
+    --text:#e8edf2; --muted:#90a0b0; --accent:#3ec78b; --accent2:#f0a93b;
+    --obra:#3ec78b; --cheese:#f5b942; --big:#e8533a; --node:#6aa9ff; --sea:#e8533a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  #wrap{display:flex;height:100vh;overflow:hidden}
+  #map{flex:1;height:100%}
+  #side{width:360px;min-width:360px;height:100%;overflow-y:auto;background:var(--panel);border-left:1px solid var(--line);padding:16px}
+  h1{font-size:16px;margin:0 0 2px}
+  .sub{font-size:11.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+  .card h2{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;margin:5px 0;font-size:13px}
+  .stat b{font-size:18px;font-variant-numeric:tabular-nums}
+  .stat .u{color:var(--muted);font-size:11px}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12.5px;width:100%;margin-bottom:7px;transition:.12s}
+  button:hover{border-color:var(--accent);background:#1b2a22}
+  button.primary{background:var(--accent);color:#06150d;border-color:var(--accent);font-weight:600}
+  button.primary:hover{filter:brightness(1.08)}
+  button.warn:hover{border-color:var(--big);background:#2a1815}
+  .row{display:flex;gap:7px}
+  .row button{margin-bottom:0}
+  label.fld{display:block;font-size:11.5px;color:var(--muted);margin:10px 0 4px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .val{font-variant-numeric:tabular-nums;color:var(--text)}
+  .legend{font-size:11.5px;line-height:1.9}
+  .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;vertical-align:middle;border:1px solid rgba(255,255,255,.25)}
+  .obras{margin-top:4px}
+  details.obra{border-bottom:1px solid var(--line);padding:4px 0}
+  details.obra:last-child{border-bottom:none}
+  details.obra summary{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;list-style:none;padding:4px 0}
+  details.obra summary::-webkit-details-marker{display:none}
+  details.obra summary .badge{width:20px;height:20px;border-radius:50%;background:var(--obra);color:#06150d;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  details.obra summary .nm{flex:1}
+  details.obra summary .cap{color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+  details.obra summary .x{color:var(--muted);padding:0 2px}
+  details.obra summary .x:hover{color:var(--big)}
+  .served{font-size:11px;color:var(--muted);padding:2px 0 6px 28px;line-height:1.7}
+  .served .f{display:flex;justify-content:space-between;gap:8px}
+  .served .f span:last-child{font-variant-numeric:tabular-nums;color:#bcd}
+  .served .cadi{color:var(--big);font-weight:600}
+  .hint{font-size:11px;color:var(--muted);background:#13202a;border:1px dashed var(--line);border-radius:8px;padding:8px;line-height:1.5;margin-top:4px}
+  .mini{font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.55}
+  .leaflet-popup-content{font-size:12.5px;line-height:1.5}
+  .leaflet-popup-content b{color:#1d2731}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#2a1815;border:1px solid var(--big);color:#ffd9d2;padding:9px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:.25s;pointer-events:none;z-index:9999}
+  #toast.show{opacity:1}
+  .obraLabel{background:var(--obra);color:#06150d;font-size:10px;font-weight:700;border:1px solid #06150d;border-radius:4px;padding:0 4px}
+  .nameLabel{background:rgba(15,20,25,.78);color:#f5e7c8;font-size:9.5px;border:none;box-shadow:none;padding:0 3px;white-space:nowrap}
+  .nameLabel::before{display:none}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="map"></div>
+  <div id="side">
+    <h1>Simulació d'obradors</h1>
+    <div class="sub">Cada obrador recull sèrum en un radi de <b style="color:var(--accent)">40 km</b> i <b style="color:var(--sea)">no pot anar al mar</b>. L'optimitzador col·loca el <b>mínim d'obradors</b> per cobrir totes les <b id="nProd2">77</b> formatgeries amb el menor solapament, i calcula <b>quantes t de sèrum/dia processa cada un</b>.</div>
+
+    <div class="card">
+      <h2>Construir la xarxa</h2>
+      <button class="primary" id="btnOpt">★ Optimitzar (mínim d'obradors, sense solapament)</button>
+      <button id="btnTile">⬡ Graella de cobertura 40 km</button>
+      <div class="row">
+        <button id="btnAdd">＋ Mode afegir</button>
+        <button class="warn" id="btnClear">Esborrar</button>
+      </div>
+      <button id="btnNames">🏷️ Mostrar noms de les formatgeries</button>
+      <div class="hint" id="hint">Prem <b>Optimitzar</b> per a la xarxa mínima. Activa <b>Mode afegir</b> i clica per posar-ne a mà; arrossega per moure (es rebutja al mar).</div>
+    </div>
+
+    <div class="card">
+      <h2>Resultat de la simulació</h2>
+      <div class="stat"><span>Obradors</span><b id="sObras">0</b></div>
+      <div class="stat"><span>Formatgeries cobertes</span><b><span id="sCov">0</span><span class="u"> / <span id="sTot">0</span></span></b></div>
+      <div class="stat"><span>Sèrum processat</span><b id="sWhey">0<span class="u"> t/dia</span></b></div>
+      <div class="stat"><span>% del sèrum total (740 t/dia)</span><b id="sWheyPct">0<span class="u">%</span></b></div>
+      <div class="stat"><span>Processat per obrador (mitjana)</span><b id="sAvg">0<span class="u"> t/dia</span></b></div>
+      <div class="mini" id="balance"></div>
+    </div>
+
+    <div class="card">
+      <h2>Obradors · quines formatgeries serveix cadascun</h2>
+      <div class="obras" id="obraList"><div class="mini">Cap encara.</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Model de sèrum (editable)</h2>
+      <label class="fld">Sèrum total de Catalunya: <span class="val" id="totLbl">740</span> t/dia</label>
+      <input type="range" id="totSlider" min="400" max="1000" step="10" value="740">
+      <label class="fld">Cadí (la Seu d'Urgell): <span class="val" id="cadiLbl">250</span> t/dia</label>
+      <input type="range" id="cadiSlider" min="0" max="400" step="10" value="250">
+      <div class="mini" id="modelNote"></div>
+    </div>
+
+    <div class="card">
+      <h2>Com s'estima el sèrum per formatgeria</h2>
+      <div class="mini" style="font-size:11px">
+        <b>1. Cadí = 250 t/dia</b> — dada teva (mesurada), tractada com a node industrial a part.<br><br>
+        <b>2. Resta = 740 − 250 = <span id="restLbl">490</span> t/dia</b> — repartida <b>a parts iguals</b> entre les 77 formatgeries artesanes de l'ACREFA → <b>~<span id="perProd">6.4</span> t/dia</b> cadascuna.<br><br>
+        <b>Per què a parts iguals?</b> L'ACREFA publica el nom i la ubicació de cada formatgeria, però <i>no</i> el volum de llet que processa. Sense aquest volum, el repartiment uniforme és el supòsit neutre i transparent. Pots ajustar-lo amb els controls de dalt.<br><br>
+        <b>Límit a tenir present:</b> les 490 t/dia reals inclouen també grans indústries làcties que <i>no</i> surten al mapa artesà, així que el valor per formatgeria artesana és un sostre. Quan tinguis litres de llet/dia reals per productor, els ponderem i el càlcul deixa de ser un supòsit.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Llegenda</h2>
+      <div class="legend">
+        <div><span class="dot" style="background:var(--obra)"></span>Obrador (radi 40 km)</div>
+        <div><span class="dot" style="background:var(--big)"></span>Cadí · 250 t/dia (industrial)</div>
+        <div><span class="dot" style="background:var(--cheese)"></span>Formatgeria artesana ACREFA</div>
+        <div><span class="dot" style="background:var(--node)"></span>Referència (La Pobla, Maresme)</div>
+      </div>
+      <div class="mini">Dades reals del mapa de l'ACREFA (acrefa.cat). Les 77 formatgeries hi són totes; algunes queden molt juntes — activa els noms o fes zoom per veure-les separades.</div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ---------- ACREFA artisan cheesemakers (whey sources) — extracted live from acrefa.cat map ----------
+const ACREFA = [
+["Formatgeria La Frasera",41.60162,1.90465],["La Botiga d'Ullastrell",41.52811,1.95767],
+["Formatges Can Pujol",41.53111,2.32246],["Can Ponsa",41.73535,2.27589],
+["Formatgeria Mogent",41.65595,2.36888],["Formatgeria del Montseny",41.78152,2.40252],
+["Can Orjusa",41.62998,2.17024],["La Cleda",41.62806,2.28395],
+["Granja El Prat",41.65759,2.24447],["Làctics Clotet",41.63148,2.1648],
+["Formatges de Colldejou",41.09952,0.88691],["Làctics Portella",41.01031,0.90921],
+["Sant Gil d'Albió",41.56493,1.27079],["Formatgeria de Tòrrec",41.89505,1.04675],
+["Formatgeria de Clua",41.94774,1.0175],["Cal Quitèria",41.72986,0.41603],
+["Tabollet i Montllobé",41.49485,0.46044],["Casa Sibilló",41.67303,0.34925],
+["Formatges Camps",41.64876,0.88362],["Formatges Veciana",41.68298,1.46961],
+["Formatges Serra del Tormo",41.19095,0.62465],["Formatge Baridà",42.35856,1.63972],
+["Formatgeria Serrat Gros",42.21714,1.47183],["Formatgeria Mas d'Eroles",42.32314,1.39802],
+["Formatges l'Oliva",42.07956,1.30299],["Molí de Ger",42.40155,1.86259],
+["Formatges Vilavella",42.14909,1.01697],["Cal Joanet",42.5829,1.23622],
+["Formatgeria Casa Mateu",42.45356,1.12646],["Tros de Sort",42.40713,1.1311],
+["Formatgeria Roura Soler",42.26532,2.3668],["Muuu Beee Formatgeria",42.21077,2.20461],
+["Mas El Lladré",42.16069,2.08816],["La Balda",42.07121,2.65531],
+["La Xiquella",42.12257,2.46702],["Formatgeria Xauxa",42.1431,2.45957],
+["Mas Claperol",42.185,2.46942],["Làctics Pauet",42.07653,3.02178],
+["Recuits de Fonteta",41.94899,3.05885],["Recuits i Formatges Nuri",41.99982,3.06915],
+["Peralada Mas Marcè",42.21137,2.99378],["Formatgeria Mas Alba",42.11824,2.88943],
+["Le Bolut",42.14934,2.87237],["Formatges Montbrú",41.80478,2.10935],
+["El Canadell",41.89003,2.06715],["El Molí de l'Alzina",42.04768,2.40843],
+["Formatges Mas El Garet",41.86831,2.23236],["Làctics Ubach",41.91949,2.25217],
+["Formatges Reixagó",41.9973,2.07465],["Formatgeria Mas Rovira",42.09752,2.16719],
+["Granja Comas",41.9076,2.28161],["Molí de la Llavina",41.78618,2.23032],
+["Formatge d'Espinelves",41.86887,2.41766],["Formatges Riudavets",42.03644,2.36981],
+["Formatgeria del Miracle",41.94178,1.56376],["Cuirols",42.17755,1.89727],
+["Formatges Blancafort",42.03403,1.87741],["Formatge Bauma",42.14384,1.99457],
+["Cal Músic",41.89117,1.85328],["Ca La Pruvi",41.64039,1.79298],
+["Cal Pujolet",41.64041,1.80246],["Formatges Muntanyola (F. Ampans)",41.67669,1.74823],
+["Granja Torre d'en Roca",41.83311,1.87665],["Cal Carlot",41.76597,1.7872],
+["Can Florí",41.64021,1.79305],["Masia Can Fermí",41.64621,1.80286],
+["Formatges Gavarresa",41.79685,1.95264],["Cal Cantaré",41.78285,1.83915],
+["Artesans dels Avalls",42.33613,2.85564],["Formatges Monber",41.78748,1.10356],
+["La Vinyeta",42.3575,2.99568],["Formatges de Pallars",42.1566,0.89037],
+["Camins del Nord",41.42517,1.7839],["La petita ànima",42.12055,2.10168],
+["Mas Borni",41.85239,2.9028],["l'Aubreda Formatgeria",42.0488,2.64054],
+["L'Esquella",42.369,1.77641]
+].map(a=>({name:a[0],lat:a[1],lng:a[2]}));
+
+const CADI = {name:"Cadí (la Seu d'Urgell)", lat:42.357, lng:1.459, industrial:true};
+const NODES = [
+  {name:"La Pobla de Segur (node Quota Vita)", lat:42.247, lng:0.968},
+  {name:"Mataró (base Maresme)", lat:41.540, lng:2.445},
+];
+const RADIUS_KM = 40;
+
+let TOTAL_WHEY=740, CADI_WHEY=250;
+const restWhey=()=>Math.max(0,TOTAL_WHEY-CADI_WHEY);
+const perArtisanWhey=()=>restWhey()/ACREFA.length;
+
+let addMode=false, namesOn=false, obras=[], nextId=1;
+
+// ---------- Map ----------
+const map=L.map('map',{zoomControl:true}).setView([41.75,1.65],8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO · dades formatgeries: ACREFA',maxZoom:18,subdomains:'abcd'}).addTo(map);
+const getCss=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function haversine(a,b){const R=6371,r=x=>x*Math.PI/180;const dLat=r(b.lat-a.lat),dLng=r(b.lng-a.lng);
+  const s=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(s));}
+
+// ---------- Land / sea test ----------
+const COAST=[[40.52,0.52],[40.62,0.60],[40.72,0.78],[40.81,0.74],[40.95,0.81],
+[41.07,1.05],[41.11,1.25],[41.22,1.73],[41.34,2.10],[41.38,2.19],[41.55,2.45],
+[41.67,2.79],[41.82,3.06],[41.88,3.17],[42.05,3.17],[42.19,3.12],[42.29,3.28]];
+function coastLngAt(lat){if(lat<=COAST[0][0])return COAST[0][1];if(lat>=COAST[COAST.length-1][0])return COAST[COAST.length-1][1];
+  for(let i=0;i<COAST.length-1;i++){const[la,lo]=COAST[i],[lb,lob]=COAST[i+1];if(lat>=la&&lat<=lb){const t=(lat-la)/(lb-la);return lo+t*(lob-lo);}}return COAST[COAST.length-1][1];}
+const isSea=(lat,lng)=>lng>coastLngAt(lat)+0.02;
+
+// ---------- Draw sources ----------
+const cheeseMarkers=[];
+ACREFA.forEach(c=>{
+  const m=L.circleMarker([c.lat,c.lng],{radius:5,color:'#1a120a',weight:1.2,fillColor:getCss('--cheese'),fillOpacity:1})
+    .addTo(map).bindPopup(`<b>${c.name}</b><br><span style="color:#777">formatgeria artesana · ${perArtisanWhey().toFixed(1)} t sèrum/dia (est.)</span>`);
+  cheeseMarkers.push({m,name:c.name});
+});
+const cadiMarker=L.circleMarker([CADI.lat,CADI.lng],{radius:10,color:'#1a0a08',weight:2,fillColor:getCss('--big'),fillOpacity:1})
+  .addTo(map).bindPopup(`<b>${CADI.name}</b><br>Node industrial · ~250 t sèrum/dia`);
+cheeseMarkers.push({m:cadiMarker,name:CADI.name});
+NODES.forEach(n=>L.marker([n.lat,n.lng],{icon:L.divIcon({className:'',iconSize:[12,12],iconAnchor:[6,6],
+  html:`<div style="width:12px;height:12px;border-radius:3px;background:${getCss('--node')};border:2px solid #0f1419"></div>`})})
+  .addTo(map).bindPopup(`<b>${n.name}</b>`));
+
+const obraIcon=()=>L.divIcon({className:'',iconSize:[20,20],iconAnchor:[10,10],
+  html:`<div style="width:20px;height:20px;border-radius:50%;background:${getCss('--obra')};border:3px solid #0f1419;box-shadow:0 0 10px ${getCss('--obra')}"></div>`});
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ---------- Names toggle ----------
+function applyNames(){
+  cheeseMarkers.forEach(o=>{o.m.unbindTooltip();
+    if(namesOn) o.m.bindTooltip(o.name,{permanent:true,direction:'top',className:'nameLabel',offset:[0,-4]});});
+}
+document.getElementById('btnNames').onclick=()=>{namesOn=!namesOn;
+  document.getElementById('btnNames').textContent=namesOn?'🏷️ Amagar noms':'🏷️ Mostrar noms de les formatgeries';
+  document.getElementById('btnNames').style.borderColor=namesOn?getCss('--accent'):'';applyNames();};
+
+// ---------- Obrador ops ----------
+function addObra(lat,lng){
+  if(isSea(lat,lng)){toast('🌊 No es pot crear un obrador al mar.');return null;}
+  const id=nextId++;
+  const circle=L.circle([lat,lng],{radius:RADIUS_KM*1000,color:getCss('--obra'),weight:1.5,fillColor:getCss('--obra'),fillOpacity:0.07}).addTo(map);
+  const marker=L.marker([lat,lng],{icon:obraIcon(),draggable:true}).addTo(map);
+  const o={id,marker,circle,reqCap:0,assigned:[]};
+  marker.on('drag',e=>circle.setLatLng(e.target.getLatLng()));
+  marker.on('dragend',e=>{const p=e.target.getLatLng();if(isSea(p.lat,p.lng))toast('🌊 Aquesta posició és al mar.');recompute();});
+  marker.on('dblclick',()=>removeObra(id));
+  obras.push(o);return o;
+}
+function removeObra(id){const i=obras.findIndex(o=>o.id===id);if(i<0)return;map.removeLayer(obras[i].marker);map.removeLayer(obras[i].circle);obras.splice(i,1);recompute();}
+function clearAll(){obras.forEach(o=>{map.removeLayer(o.marker);map.removeLayer(o.circle);});obras=[];recompute();}
+
+// ---------- Greedy set-cover optimization (min obradors, min overlap) ----------
+function optimize(){
+  clearAll();
+  const sources=[...ACREFA,CADI];
+  let uncovered=sources.map((_,i)=>i);
+  let guard=0;
+  while(uncovered.length && guard++<200){
+    let bestIdx=-1,bestCov=[];
+    for(let ci=0;ci<sources.length;ci++){
+      const c=sources[ci];if(isSea(c.lat,c.lng))continue;
+      const cov=uncovered.filter(k=>haversine(c,sources[k])<=RADIUS_KM);
+      if(cov.length>bestCov.length){bestCov=cov;bestIdx=ci;}
+    }
+    if(bestIdx<0)break;
+    // centre on the centroid of the covered cluster if it still reaches all of them and is on land
+    let lat=0,lng=0;bestCov.forEach(k=>{lat+=sources[k].lat;lng+=sources[k].lng;});
+    lat/=bestCov.length;lng/=bestCov.length;
+    if(isSea(lat,lng)||!bestCov.every(k=>haversine({lat,lng},sources[k])<=RADIUS_KM)){
+      lat=sources[bestIdx].lat;lng=sources[bestIdx].lng;
+    }
+    addObra(lat,lng);
+    uncovered=uncovered.filter(k=>!bestCov.includes(k));
+  }
+  recompute();
+}
+
+// ---------- Hex tiling (alternative) ----------
+function tileRegion(){
+  clearAll();
+  const all=[...ACREFA,CADI];const lats=all.map(c=>c.lat),lngs=all.map(c=>c.lng);
+  const minLat=Math.min(...lats)-0.1,maxLat=Math.max(...lats)+0.1,minLng=Math.min(...lngs)-0.1,maxLng=Math.max(...lngs)+0.1;
+  const dxKm=RADIUS_KM*1.5,dyKm=RADIUS_KM*1.3,kmLat=111.0,midLat=(minLat+maxLat)/2,kmLng=111.0*Math.cos(midLat*Math.PI/180);
+  const dLat=dyKm/kmLat,dLng=dxKm/kmLng;let row=0;
+  for(let lat=minLat;lat<=maxLat+dLat;lat+=dLat){const off=(row%2)?dLng/2:0;
+    for(let lng=minLng-dLng;lng<=maxLng+dLng;lng+=dLng){const p={lat,lng:lng+off};
+      if(isSea(p.lat,p.lng))continue;
+      if(all.some(c=>haversine(p,c)<=RADIUS_KM))addObra(p.lat,p.lng);}row++;}
+  recompute();
+}
+
+// ---------- Recompute: assign each source to NEAREST obrador within 40km ----------
+function recompute(){
+  obras.forEach(o=>{o.reqCap=0;o.assigned=[];});
+  const sources=[...ACREFA.map(c=>({name:c.name,lat:c.lat,lng:c.lng,whey:perArtisanWhey(),cadi:false})),
+                 {name:CADI.name,lat:CADI.lat,lng:CADI.lng,whey:CADI_WHEY,cadi:true}];
+  let coveredCount=0,coveredWhey=0;const totCount=sources.length;
+  sources.forEach(s=>{let best=null,bd=Infinity;
+    obras.forEach(o=>{const d=haversine(o.marker.getLatLng(),s);if(d<=RADIUS_KM&&d<bd){bd=d;best=o;}});
+    if(best){best.reqCap+=s.whey;best.assigned.push(s);coveredCount++;coveredWhey+=s.whey;}});
+  const avg=obras.length?coveredWhey/obras.length:0;
+  document.getElementById('sObras').textContent=obras.length;
+  document.getElementById('sCov').textContent=coveredCount;
+  document.getElementById('sTot').textContent=totCount;
+  document.getElementById('sWhey').innerHTML=coveredWhey.toFixed(0)+'<span class="u"> t/dia</span>';
+  document.getElementById('sWheyPct').innerHTML=Math.round(coveredWhey/TOTAL_WHEY*100)+'<span class="u">%</span>';
+  document.getElementById('sAvg').innerHTML=avg.toFixed(1)+'<span class="u"> t/dia</span>';
+  const bal=document.getElementById('balance');
+  if(!obras.length){bal.textContent='';}
+  else{const big=obras.filter(o=>o.reqCap>=200).length,empty=obras.filter(o=>o.reqCap<1).length;
+    let msg=`Es capta <b>${coveredWhey.toFixed(0)} t/dia</b> (${Math.round(coveredWhey/TOTAL_WHEY*100)}% del sèrum català). `;
+    if(big)msg+=`⚠️ <b>${big}</b> obrador(s) ≥200 t/dia (efecte Cadí) — probablement cal una planta dedicada i sobredimensionada. `;
+    if(empty)msg+=`🔸 <b>${empty}</b> sense sèrum (es poden treure). `;
+    bal.innerHTML=msg;}
+  obras.forEach((o,i)=>{o.letter=String.fromCharCode(65+i);o.marker.unbindTooltip();
+    o.marker.bindTooltip(`${o.letter} · ${o.reqCap.toFixed(0)} t/dia`,{permanent:true,direction:'right',className:'obraLabel',offset:[8,0]});});
+  renderList();
+}
+
+function renderList(){
+  const el=document.getElementById('obraList');
+  if(!obras.length){el.innerHTML='<div class="mini">Cap encara.</div>';return;}
+  const sorted=[...obras].sort((a,b)=>b.reqCap-a.reqCap);
+  el.innerHTML='';
+  sorted.forEach(o=>{
+    const d=document.createElement('details');d.className='obra';
+    const served=[...o.assigned].sort((a,b)=>b.whey-a.whey);
+    const rows=served.map(s=>`<div class="f ${s.cadi?'cadi':''}"><span>${s.cadi?'★ ':''}${s.name}</span><span>${s.whey.toFixed(1)}</span></div>`).join('')
+      ||'<div class="f"><span>(cap formatgeria al radi)</span><span>0</span></div>';
+    d.innerHTML=`<summary><span class="badge">${o.letter}</span><span class="nm">Obrador ${o.letter} · ${o.assigned.length} formatgeries</span><span class="cap">${o.reqCap.toFixed(0)} t/dia</span><span class="x" title="Eliminar">✕</span></summary><div class="served">${rows}</div>`;
+    d.querySelector('.x').onclick=ev=>{ev.preventDefault();removeObra(o.id);};
+    d.querySelector('summary').addEventListener('mouseenter',()=>o.marker.openTooltip());
+    el.appendChild(d);
+  });
+}
+
+// ---------- Model labels & sliders ----------
+function refreshModel(){
+  document.getElementById('totLbl').textContent=TOTAL_WHEY;
+  document.getElementById('cadiLbl').textContent=CADI_WHEY;
+  document.getElementById('restLbl').textContent=restWhey().toFixed(0);
+  document.getElementById('perProd').textContent=perArtisanWhey().toFixed(1);
+  document.getElementById('nProd2').textContent=ACREFA.length;
+  document.getElementById('modelNote').innerHTML=`Resta = <b>${restWhey().toFixed(0)} t/dia</b> entre <b>${ACREFA.length}</b> formatgeries = <b>${perArtisanWhey().toFixed(1)} t/dia</b> cadascuna. Cada formatgeria s'assigna a l'obrador <b>més proper</b> dins 40 km (sense doble comptatge).`;
+}
+document.getElementById('totSlider').oninput=e=>{TOTAL_WHEY=+e.target.value;if(CADI_WHEY>TOTAL_WHEY){CADI_WHEY=TOTAL_WHEY;document.getElementById('cadiSlider').value=CADI_WHEY;}refreshModel();recompute();};
+document.getElementById('cadiSlider').oninput=e=>{CADI_WHEY=Math.min(+e.target.value,TOTAL_WHEY);refreshModel();recompute();};
+
+// ---------- UI ----------
+document.getElementById('btnOpt').onclick=optimize;
+document.getElementById('btnTile').onclick=tileRegion;
+document.getElementById('btnClear').onclick=clearAll;
+const btnAdd=document.getElementById('btnAdd');
+btnAdd.onclick=()=>{addMode=!addMode;btnAdd.textContent=addMode?'● Mode afegir (actiu)':'＋ Mode afegir';
+  btnAdd.style.borderColor=addMode?getCss('--accent'):'';document.getElementById('map').style.cursor=addMode?'crosshair':'';};
+map.on('click',e=>{if(addMode){const o=addObra(e.latlng.lat,e.latlng.lng);if(o)recompute();}});
+
+refreshModel();
+optimize();
+</script>
+</body>
+</html>
