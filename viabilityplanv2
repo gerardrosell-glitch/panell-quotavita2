@@ -1,0 +1,699 @@
+
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quota Vita — Model Estratègic 2026–2028</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+  :root{ color-scheme: light;
+    --bg:#FBF7F2; --card:#ffffff; --ink:#2b2320; --muted:#8a7d75; --line:#ece3da;
+    --brand:#A0493A; --brand-soft:#f3e7e2; --budget:#CFC1B2; --real:#A0493A;
+    --good:#5b7d3a; --bad:#b23a2e; --warn:#C2872B; --scn:#6E7B4F; --blue:#3E7378; --gold:#C2872B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px}
+  h1{font-size:20px;margin:0 0 2px} h2{font-size:13px;margin:0 0 11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  h3{font-size:14px;margin:16px 0 8px}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .sub{color:var(--muted);font-size:12.5px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .tab{padding:8px 13px;border:none;border-bottom:2px solid transparent;background:none;color:var(--muted);font-weight:600;cursor:pointer;font-size:13px}
+  .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+  .panel{display:none} .panel.active{display:block}
+  .grid{display:grid;gap:13px}
+  .kpis{grid-template-columns:repeat(4,1fr)} .k3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:780px){.kpis,.k3{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .kpi .lbl{color:var(--muted);font-size:12px;margin-bottom:5px}
+  .kpi .val{font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .kpi .delta{font-size:12.5px;font-weight:600;margin-top:3px}
+  .pos{color:var(--good)} .neg{color:var(--bad)} .mut{color:var(--muted);font-weight:500}
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:13px;margin-top:13px}
+  @media(max-width:880px){.row2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+  tr.sub-h td{font-weight:700;color:var(--brand);background:var(--brand-soft)}
+  .chip{display:inline-block;padding:1px 8px;border-radius:20px;font-weight:600;font-size:12px}
+  .chip.g{background:#eaf0e0;color:var(--good)} .chip.b{background:#f7e5e2;color:var(--bad)} .chip.w{background:#f6edd7;color:var(--warn)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:9px}
+  .lead{font-size:14px;color:var(--ink);line-height:1.6;max-width:70ch}
+  canvas{max-height:300px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .funnel{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .funnel .bar{background:var(--brand);color:#fff;border-radius:8px;padding:9px 13px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .funnel .bar small{font-weight:500;opacity:.85}
+  .slider label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:5px}
+  .slider label span{color:var(--brand)}
+  input[type=range]{width:100%;accent-color:var(--brand)}
+  .assum{display:grid;grid-template-columns:repeat(2,1fr);gap:15px 22px}
+  @media(max-width:760px){.assum{grid-template-columns:1fr}}
+  .scnres{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .scnres .b{background:var(--brand-soft);border-radius:10px;padding:11px;text-align:center}
+  .scnres .b .y{font-size:12px;color:var(--muted)} .scnres .b .n{font-size:18px;font-weight:700}
+  .verdict{background:var(--brand-soft);border-left:4px solid var(--brand);border-radius:0 10px 10px 0;padding:12px 15px;margin-top:12px;font-size:13px;line-height:1.55}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:13px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <h1 style="color:var(--brand)">Quota Vita · Model Estratègic 2026–2028</h1>
+    <div class="sub">Pla de viabilitat + dimensió de mercat, escenari planta, equip i finançament · dades reals del pla</div>
+  </div>
+</div>
+<div class="tabs" id="tabs"></div>
+
+<!-- ============ RESUM ============ -->
+<div class="panel active" data-p="resum">
+  <div class="grid kpis" id="kpisResum"></div>
+  <div class="card" style="margin-top:13px">
+    <h2>La tesi en una frase</h2>
+    <p class="lead">Quota Vita ven proteïna whey amb sabors catalans (crema catalana, horxata). Cada dia es
+    malbaraten <b>740 tones de sèrum de llet a Catalunya</b> i el <b>80% de qui fa esport té dèficit proteic</b>.
+    El pla base arriba a la rendibilitat el 2026 amb ~€339k de vendes el 2028. La <b>tesi de creixement</b> és una
+    ronda de ~€500k per construir una <b>planta pròpia de valorització del sèrum</b> que puja el marge del 55% al 85% —
+    però només compensa per sobre de ~€540k de vendes. Aquest panell mostra les dues capes: el pla i l'aposta.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>Resultat abans d'impostos (pla, 3 anys)</h2><canvas id="chResRdo"></canvas></div>
+    <div class="card"><h2>Mercat vs captura</h2>
+      <div class="funnel">
+        <div class="bar" style="background:var(--brand)">TAM · €113M <small>tot el mercat (3 regions)</small></div>
+        <div class="bar" style="background:#BC6A52;width:70%">SAM · €17M <small>abastable</small></div>
+        <div class="bar" style="background:#D49680;width:42%">SOM · €0,6M <small>3 anys</small></div>
+      </div>
+      <div class="note">TAM = whey en pols + begudes proteiques a Catalunya, València i Balears.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Resum del pla a 3 anys</h2><table id="tblResum3a"></table></div>
+</div>
+
+<!-- ============ PLA DE (24) ============ -->
+<div class="panel" data-p="de">
+  <div class="card"><h2>MIT Disciplined Entrepreneurship — 24 passos (inputs reals)</h2>
+    <p class="lead">El pla complet estructurat amb el framework de Bill Aulet (MIT / Orbit), amb les <b>dades reals de
+    Quota Vita</b> a cada pas. Marca sempre <b>Quota Vita S.L.</b> (corregeix qualsevol nom inventat per Orbit). Ítems
+    marcats "target / pilot / unverified" encara no estan validats. Enganxa cada bloc al pas corresponent d'Orbit.</p>
+  </div>
+  <div id="deWrap"></div>
+</div>
+
+<!-- ============ MERCAT ============ -->
+<div class="panel" data-p="mercat">
+  <div class="grid kpis" id="kpisMercat"></div>
+  <div class="row2">
+    <div class="card"><h2>Embut: de població a compradors</h2>
+      <div class="funnel" id="funnelMercat"></div>
+      <div class="note">Població (INE 2025) × practicants d'esport (50%, AFEC-2019) × consumidors potencials de proteïna (30%) × adopció anual (40%).</div>
+    </div>
+    <div class="card"><h2>TAM / SAM / SOM (€M/any)</h2><canvas id="chTam"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Població objectiu (2025)</h2><table id="tblPob"></table></div>
+  <div class="verdict">El mercat no és la restricció: amb un TAM de ~€113M (creixent a ~€151M el 2030) i ~2,2M de
+    consumidors potencials, capturar 4.800 clients en 3 anys (el SOM) és ~0,5% del mercat. La feina és execució, no mida.</div>
+</div>
+
+<!-- ============ PLA FINANCER ============ -->
+<div class="panel" data-p="pyl">
+  <div class="card"><h2>Compte de resultats anual — pla base (€)</h2><table id="tblPyl"></table>
+    <div class="note">Xifres del pla de viabilitat (codi 15043). Marge brut ~50%, break-even ~€6.000/mes.</div></div>
+  <div class="row2">
+    <div class="card"><h2>Vendes vs punt d'equilibri</h2><canvas id="chBE"></canvas>
+      <div class="legend"><span><span class="sw" style="background:var(--real)"></span>Vendes</span>
+        <span><span class="sw" style="background:var(--warn)"></span>Punt d'equilibri</span></div></div>
+    <div class="card"><h2>Indicadors clau</h2><table id="tblInd"></table></div>
+  </div>
+</div>
+
+<!-- ============ PLANTA ============ -->
+<div class="panel" data-p="planta">
+  <div class="grid kpis" id="kpisPlanta"></div>
+  <div class="row2">
+    <div class="card"><h2>EBIT amb planta vs sense — segons vendes</h2><canvas id="chPlant"></canvas>
+      <div class="legend"><span><span class="sw" style="background:#C00000"></span>Sense planta (marge 55%)</span>
+        <span><span class="sw" style="background:var(--good)"></span>Amb planta (marge 85%)</span></div></div>
+    <div class="card"><h2>Punt d'equilibri</h2><table id="tblBE"></table>
+      <div class="note">La planta baixa el marge variable però afegeix costos fixos (2 operaris, QA, amortització, interessos).</div></div>
+  </div>
+  <div class="two" style="margin-top:13px">
+    <div class="card"><h2>Quan construir-la? 2027 vs 2028</h2><table id="tblTiming"></table></div>
+    <div class="card"><h2>Pla de vendes 2028 (amb planta)</h2><table id="tblSales"></table></div>
+  </div>
+  <div class="verdict"><b>Veredicte:</b> construir el 2028, no el 2027. Amb un equip real de 6 persones el break-even puja
+    a ~€540k; la planta només supera la compra de whey per sobre de ~€513k de vendes. El 2027 (a €250k) una planta ja
+    dotada de personal perdria ~€166k. El 2028, a €600k, és rendible des del Q3 i l'avantatge escala fort a volums alts
+    (~€146k/any a €1M). Risc clau: que el COGS baixi realment a 1/3 a escala de producció (avui és pilot).</div>
+</div>
+
+<!-- ============ MARGES & CANALS ============ -->
+<div class="panel" data-p="marges">
+  <div class="card"><h2>El problema del retail — i com el resol la beguda</h2>
+    <p class="lead">Comprant WPC, el marge a l'engròs és massa prim per fer retail (26% al 300g, 47% al 1500g). La
+    <b>beguda fermentada, produïda a la mateixa formatgeria</b> (sèrum gratis i in situ, aprofitant el seu registre
+    sanitari), puja el marge d'hora amb <b>inversió gairebé zero</b> — i ÉS la història de sostenibilitat. La planta
+    pròpia de €350k és el final de partida, quan el volum ho justifiqui.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>Marge per canal i etapa</h2><table id="tblChan"></table>
+      <div class="note">A l'engròs cedeixes ~16 punts al detallista. El retail només funciona quan el marge de producció ho absorbeix.</div></div>
+    <div class="card"><h2>Punt d'equilibri i inversió per etapa</h2><table id="tblStage"></table></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Beguda (màquina petita) vs planta completa — EBIT segons vendes</h2>
+    <canvas id="chDrink"></canvas>
+    <div class="legend"><span><span class="sw" style="background:var(--brand)"></span>Beguda a formatgeria (~€0)</span>
+      <span><span class="sw" style="background:var(--scn)"></span>Planta completa (€350k)</span></div></div>
+  <div class="verdict"><b>La seqüència que en surt:</b> (1) ara — pols DTC, marge 55%. (2) Llança la <b>beguda fermentada
+    a una formatgeria</b> (toll): sèrum gratis, el seu registre RSIPAC, inversió ~€0, marge 58-70% (segons COGS),
+    break-even ~€355-490k — el camí més barat i ràpid, i fa el retail viable si el sèrum abarateix prou. (3) Màquina o planta pròpia només quan escalis (&gt;€1M), per
+    control i marge màxim. La formatgeria elimina el CAPEX, el risc regulatori i el cost de matèria primera d'un sol
+    cop — pots arribar a rendibilitat gairebé sense finançament.</div>
+</div>
+
+<!-- ============ MIX BEGUDA/POLS ============ -->
+<div class="panel" data-p="mix">
+  <div class="card"><h2>Mix de producte: beguda vs pols</h2>
+    <p class="lead">Referència de mercat: <b>YoPro (Danone) i Arla</b> venen begudes proteiques (20-26g) a <b>~€2,14
+    ex-IVA</b> — això fixa el sostre de preu. El teu marge depèn del COGS: <b>realista ~58%</b>, però amb <b>sèrum gratis
+    a la formatgeria pot arribar al 70%</b>. La pols (55%) és venible avui; la beguda és el motor de marge <i>només</i>
+    si el sèrum abarateix prou el COGS.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>EBIT a €600k segons el mix</h2><canvas id="chMix"></canvas></div>
+    <div class="card"><h2>Punt d'equilibri segons el mix</h2><canvas id="chMixBE"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Comparativa de mixos</h2><table id="tblMix"></table>
+    <div class="note">Supòsits: marge pols 55%, beguda 65%, costos fixos ~€160k (equip lean, producció a formatgeria),
+      màrqueting + comissions 27,5%. EBIT calculat a €600k de vendes.</div></div>
+  <div class="verdict"><b>Lectura (post-benchmark YoPro/Arla):</b> amb marge realista (58%) la beguda amb prou feines
+    bat la pols — un 50/50 només puja l'EBIT a €600k de €5k a €14k. <b>Però si el sèrum gratis baixa el COGS i la beguda
+    arriba al 70%, el mix esdevé potent</b> (50/50 → EBIT €50k, break-even €457k). Conclusió: el valor de marge de la
+    beguda depèn del COGS del sèrum gratis — per això produir a la formatgeria és decisiu. Al preu de categoria, la
+    beguda val sobretot per l'<b>accés al retail, el volum i la sostenibilitat</b>, no pel marge per unitat (guanyes
+    ~€1,20/unitat vs €30+ per un pot de 1500g).</div>
+</div>
+
+<!-- ============ EQUIP ============ -->
+<div class="panel" data-p="equip">
+  <div class="grid k3" id="kpisEquip"></div>
+  <div class="row2">
+    <div class="card"><h2>Cost de personal per any (net de subvenció)</h2><canvas id="chTeam"></canvas></div>
+    <div class="card"><h2>Plantilla (FTE, final d'any)</h2><canvas id="chHead"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Rols, calendari i cost carregat (2028)</h2><table id="tblRoles"></table>
+    <div class="note">Carregat = brut × (1 + ~30% seg. social). 2 primers treballadors amb subvenció €1.400/mes durant 18 mesos (set-2026 → feb-2028).</div></div>
+  <div class="verdict">A €600k amb planta pròpia calen ~6 persones, no 3. El QA / tècnic alimentari no és opcional
+    (APPCC/RSIPAC per produir aliments). Això gairebé duplica el cost de personal el 2028 (de ~€94k a ~€175k) i és el
+    motiu pel qual el break-even amb planta puja a ~€540k.</div>
+</div>
+
+<!-- ============ FINANÇAMENT ============ -->
+<div class="panel" data-p="fin">
+  <div class="grid kpis" id="kpisFin"></div>
+  <div class="row2">
+    <div class="card"><h2>Estructura de la ronda (~€500k)</h2><canvas id="chFin"></canvas>
+      <div class="note">~77% no dilutiu: només dilueixes en el tram d'àngels. La resta és préstec tou + subvencions + banc.</div></div>
+    <div class="card"><h2>Capes de finançament</h2><table id="tblFin"></table></div>
+  </div>
+  <div class="verdict">Tanca ~€175k d'àngels (Q2 2027) i palanqueja ~2,8×: ICF/IFEM (1:1), ENISA (fons propis ≥ préstec),
+    subvencions (ACCIÓ, ARC) i banc amb aval. La ronda de €500k deixa ~€350k per la planta després de ~€150k de runway
+    comercial + equip. El número que falta per tancar-ho tot: el <b>cost real de la planta (CAPEX + throughput)</b>.</div>
+</div>
+
+<!-- ============ BENCHMARK ============ -->
+<div class="panel" data-p="bench">
+  <div class="card"><h2>Com han crescut marques comparables</h2>
+    <p class="lead">Marques d'alimentació/suplements DTC properes al teu punt de partida. Les dues més comparables són
+    <b>B3tter Foods</b> (Barcelona, bootstrapped, rendible al 4t mes, ~€600k als 2 anys) i <b>Be Levels</b> (Madrid,
+    creixement triple dígit, ~€7M als 4 anys, rendible l'any 2). Les gegants (Prozis, HSN) van integrar producció
+    pròpia només després d'una dècada i &gt;€100M de facturació.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>Facturació segons anys des de la fundació (escala log)</h2><canvas id="chBench"></canvas>
+      <div class="note">Punts de Quota Vita = escenaris a l'any 3 (2028). Alguns punts són aproximats (MyProtein a la venda).</div></div>
+    <div class="card"><h2>Lliçons de benchmark</h2><table id="tblBenchLes"></table></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Trajectòries</h2><table id="tblBench"></table></div>
+  <div class="verdict"><b>El que diu el benchmark:</b> arribar a ~€600k en 2-3 anys és real (B3tter ho va fer) i €1M
+    és plausible (Be Levels va molt més ràpid). Però els guanyadors hi van arribar <b>rendibles i sense cremar caixa</b>,
+    aixecant capital <i>tard</i> per accelerar, no per sobreviure. I cap va construir una planta pròpia gran d'hora —
+    la integració vertical va venir després d'escalar. La palanca més segura és el model B3tter (retail + lean +
+    rendible); la planta i la ronda són l'accelerador quan el volum ho justifiqui.</div>
+</div>
+
+<!-- ============ ESCENARIS ============ -->
+<div class="panel" data-p="escenaris">
+  <div class="card"><h2>Base vs Growth vs Aggressive</h2>
+    <p class="lead">Tres camins des d'aquí. Els tres tenen múltiples de creixement coherents amb marques que ho han
+    aconseguit — la diferència és el capital que cremen i si justifiquen la planta.</p></div>
+  <div class="row2">
+    <div class="card"><h2>Vendes i EBIT any 3 (2028)</h2><canvas id="chEsc"></canvas>
+      <div class="legend"><span><span class="sw" style="background:var(--brand)"></span>Vendes 2028</span>
+        <span><span class="sw" style="background:var(--scn)"></span>EBIT 2028</span></div></div>
+    <div class="card"><h2>Finançament i planta</h2><table id="tblEscFund"></table></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Comparativa</h2><table id="tblEsc"></table></div>
+  <div class="verdict"><b>Recomanació:</b> comença pel camí <b>capital-eficient</b> (retail + prescriptors, com B3tter)
+    fins a ~€500-600k demostrant repetició i marge. Aixeca la ronda i construeix la planta quan tinguis la tracció que
+    la justifica (&gt;€540k) — llavors el camí <b>Aggressive</b> amb planta esdevé una màquina de marge (+€180k EBIT a
+    €1M). Fer-ho a l'inrevés (ronda + planta abans del volum) és la ruta que el benchmark castiga.</div>
+</div>
+
+<!-- ============ RETORN 5 ANYS ============ -->
+<div class="panel" data-p="retorn">
+  <div class="card"><h2>Retorn de l'inversor — horitzó 5 anys</h2>
+    <p class="lead">Un àngel no compra l'EBIT de l'any 3 (€180k) — compra la <b>trajectòria a 5 anys</b> i la sortida.
+    Benchmark: els àngels busquen <b>~10x sobre els guanyadors i 20-30% de TIR</b>, en 5-7 anys. Les marques
+    d'alimentació es venen a <b>8-14x EBITDA</b> (mediana ~10-11x) o 2-3x vendes si creixen ràpid. Aquí, 3 camins fins
+    al 2030.</p>
+  </div>
+  <div class="card"><h2>EBIT per any (2026-2030) — 3 escenaris</h2><canvas id="chFive"></canvas></div>
+  <div class="card" style="margin-top:13px"><h2>Sortida i retorn per a l'àngel (sortida a 11x EBITDA, any 5)</h2>
+    <table id="tblFive"></table>
+    <div class="note">Àngel: €175k per ~11% (segons el roadmap de la ronda). Múltiple = valor sortida × 11% ÷ €175k. TIR anualitzada a 5 anys. 11x EBITDA = mediana del sector alimentació branded.</div></div>
+  <div class="verdict"><b>Lectura:</b> l'escenari <b>Agressiu</b> (€4M vendes, €1,2M EBIT el 2030) dóna a l'àngel ~<b>8x
+    i 53% de TIR</b> — a prop del 10x que busquen. El <b>Creixement</b> ja supera el llindar de TIR (33%) tot i un
+    múltiple de 4x. El <b>Prudent</b> (2x) no és fundible per equity — és un bon negoci, no una inversió d'àngel.
+    Missatge per l'inversor: no venguis els €180k del 2028, ven el camí cap a <b>€1M+ d'EBIT el 2030</b>. I recorda:
+    la ronda és ~77% no dilutiva, així que el seu €175k va palanquejat ~2,8× amb diner públic.</div>
+</div>
+
+<!-- ============ CAP TABLE ============ -->
+<div class="panel" data-p="captable">
+  <div class="card"><h2>Cap table i dilució</h2>
+    <p class="lead">Aquesta ronda només dilueix en el tram d'<b>àngels (€175k per ~11%)</b>. L'ICF/IFEM (participatiu),
+    ENISA, les subvencions i el banc <b>no dilueixen</b> — són deute tou o subvenció. Post-money ~€1,59M.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>Cap table pre / post ronda</h2><table id="tblCap"></table></div>
+    <div class="card"><h2>Repartiment post-ronda</h2><canvas id="chCap"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Què s'emporta cadascú a la sortida (any 5)</h2><table id="tblCapExit"></table>
+    <div class="note">Sobre les participacions post-ronda (Gerard 89% / Àngels 11%). Sortida a 11x EBITDA. No inclou una possible ronda A futura.</div></div>
+  <div class="verdict"><b>Lectura:</b> mantens el <b>89%</b> després de la ronda — poc dilutiu perquè la major part del
+    capital (€325k de €500k) és no dilutiu. A la sortida Agressiu (€13,2M) et quedes ~€11,8M i l'àngel fa 8,3x. Avís: per
+    escalar cap a €4M probablement caldrà una <b>ronda A</b> el 2028-29 que diluiria tothom ~15-25% (a canvi de més
+    valor i combustible). Fixa un terra de participació abans de negociar.</div>
+</div>
+
+<!-- ============ SUPÒSITS ============ -->
+<div class="panel" data-p="sup">
+  <div class="card"><h2>Escenari de creixement (mou el pla)</h2>
+    <div class="assum">
+      <div class="slider"><label>Vendes any 3 (€) <span id="vRev">600.000 €</span></label>
+        <input type="range" id="sRev" min="250000" max="1000000" value="600000" step="25000"></div>
+      <div class="slider"><label>Marge brut <span id="vGm">85%</span></label>
+        <input type="range" id="sGm" min="45" max="90" value="85" step="1"></div>
+      <div class="slider"><label>Persones a l'equip <span id="vTeam">6</span></label>
+        <input type="range" id="sTeam" min="3" max="9" value="6" step="1"></div>
+      <div class="slider"><label>Amortització + interessos planta (€/any) <span id="vFix">45.500 €</span></label>
+        <input type="range" id="sFix" min="0" max="90000" value="45500" step="2500"></div>
+    </div>
+    <div class="scnres" id="scnres"></div>
+    <div class="note">Simulació il·lustrativa (no modifica cap fitxer). Cost de personal ≈ persones × €29k carregat/any.
+      Màrqueting 25% + comissions 2,5% de vendes. Serveix per veure a partir de quines vendes la planta és rendible.</div>
+  </div>
+</div>
+
+<footer style="margin-top:22px;color:var(--muted);font-size:11px;text-align:center">
+  Quota Vita S.L. · model estratègic · xifres del pla de viabilitat + anàlisi de mercat/planta/finançament.
+  Projeccions, no compromisos. Generat 2026-07-19.
+</footer>
+
+<script>
+// ============ DADES ============
+const eur=n=>(n<0?'-':'')+'€'+Math.abs(Math.round(n)).toLocaleString('ca-ES');
+const eurk=n=>'€'+Math.round(n/1000)+'k';
+const eurM=n=>'€'+(n/1e6).toFixed(n<1e7?1:0)+'M';
+const charts={};
+function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(el)charts[id]=new Chart(el,cfg);}
+const baseOpts=(fmt)=>({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':'')+fmt(c.parsed.y ?? c.parsed.x)}}},scales:{y:{ticks:{callback:fmt}}}});
+
+// Pla base (viabilitat, real)
+const PLA3={anys:[2026,2027,2028],rows:[
+ ["Vendes",[58971,267245,338931],"h"],["Cost de compra",[-17270,-77621,-98442]],
+ ["Altres costos variables",[-12241,-55579,-70487]],["Marge brut",[29460,134045,170001],"t"],
+ ["Personal (sous + SS)",[-17000,-74464,-76528]],["Publicitat",[-3600,-3708,-3819]],
+ ["Altres fixos + subministraments",[-8112,-8273,-8521]],["Amortització",[-544,-30765,-40765]],
+ ["Total despeses fixes",[-29256,-117210,-129633],"t"],["Resultat abans impostos",[204,16835,40368],"t"],
+ ["Resultat després impostos",[157,12963,31084]],["EBITDA",[748,47600,81133],"h"],
+ ["Punt d'equilibri",[58563,233680,258449]]]};
+const rai=PLA3.rows.find(r=>r[0]=="Resultat abans impostos")[1];
+
+// Mercat
+const POB=[["Catalunya",8154627],["Comunitat Valenciana",5425182],["Illes Balears",1244394]];
+const POBTOT=14824203;
+const MERCAT={tam:113.2,tam2030:151.5,sam:17.0,som:0.6,potencials:2223630,compradors:889452};
+const FUNNEL=[["Població (3 regions)",14824203,"#8a2f24"],["Practicants d'esport (50%)",7412102,"#A0493A"],
+ ["Consumidors potencials (30%)",2223630,"#BC6A52"],["Compradors anuals (40%)",889452,"#D49680"]];
+
+// Planta
+const PLANT={capex:350000,dep:35000,interest:10500,gmNo:0.55,gmYes:0.85,cm:0.575,
+ fixYes:310220,fixNo:156240,beYes:539513,beNo:568145,cross:513267};
+const TIMING=[["Vendes l'any",250000,600000],["Break-even necessari",539513,539513],
+ ["EBIT amb planta",250000*0.575-310220,600000*0.575-310220]];
+const SALES2028=[["Q1",90000],["Q2",132000],["Q3",168000],["Q4",210000]];
+
+// Equip
+const TEAMNET=[["2026",28538],["2027",54930],["2028",169120]];
+const HEAD=[["2026",3],["2027",3.5],["2028",6]];
+const ROLES=[
+ ["Fundador / CEO","2026→2028","—",31200,"no"],
+ ["Atenció client & logística","set-2026",1600,24960,"no"],
+ ["Màrqueting & comunitat","set-2026",1800,28080,"no"],
+ ["QA / tècnic alimentari","Q4-2027",2200,34320,"planta"],
+ ["Operari de planta 1","Q1-2028",1800,28080,"planta"],
+ ["Operari de planta 2","Q1-2028",1800,28080,"planta"]];
+
+// Finançament
+const FIN=[["Àngels (equity)",175000,"#A0493A","Sí"],["ICF/IFEM co-inversió",122500,"#BC6A52","No"],
+ ["ENISA préstec tou",92700,"#C2872B","No"],["Subvencions (ACCIÓ+ARC)",60000,"#6E7B4F","No"],
+ ["Banc + Avalis",50000,"#3E7378","No"]];
+const FINTOT=500200;
+
+// ============ TABS ============
+const TABS=[["resum","Resum"],["de","Pla DE (24)"],["mercat","Mercat (TAM)"],["pyl","Pla financer"],["planta","Escenari planta"],
+ ["equip","Equip"],["marges","Marges & canals"],["mix","Mix beguda/pols"],["fin","Finançament"],["bench","Benchmark"],["escenaris","Escenaris"],["retorn","Retorn 5 anys"],["captable","Cap table"],["sup","Supòsits"]];
+document.getElementById('tabs').innerHTML=TABS.map((t,i)=>`<button class="tab${i==0?' active':''}" data-t="${t[0]}">${t[1]}</button>`).join('');
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');document.querySelector(`.panel[data-p="${b.dataset.t}"]`).classList.add('active');
+  draw(b.dataset.t);
+}));
+function kpi(arr,id){document.getElementById(id).innerHTML=arr.map(x=>`<div class="card kpi"><div class="lbl">${x.l}</div>
+  <div class="val">${x.v}</div><div class="delta ${x.c||''}">${x.dd||''} <span class="mut">${x.s||''}</span></div></div>`).join('');}
+
+// ============ RENDER ============
+function drawResum(){
+  kpi([
+   {l:"Vendes 2028 (pla)",v:eur(338931),s:"base"},
+   {l:"TAM (3 regions)",v:"€113M",s:"→ €151M el 2030"},
+   {l:"Ronda objectiu",v:"€500k",s:"~77% no dilutiu"},
+   {l:"Rendible des de",v:"2026",s:"pla base"}
+  ],'kpisResum');
+  mk('chResRdo',{type:'bar',data:{labels:PLA3.anys,datasets:[{data:rai,
+    backgroundColor:rai.map(v=>v>=0?'#A0493A':'#b23a2e'),borderRadius:5}]},options:baseOpts(eurk)});
+  let h='<thead><tr><th>Concepte</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  ["Vendes","Marge brut","Resultat abans impostos","EBITDA"].forEach(k=>{const v=PLA3.rows.find(r=>r[0]==k)[1];
+   h+=`<tr><td>${k}</td>${v.map(x=>`<td class="${x<0?'neg':''}">${eur(x)}</td>`).join('')}</tr>`;});
+  document.getElementById('tblResum3a').innerHTML=h+'</tbody>';
+}
+function drawMercat(){
+  kpi([
+   {l:"TAM avui",v:"€113M",s:"whey pols + begudes"},
+   {l:"TAM 2030",v:"€151M",s:"~6%/any"},
+   {l:"Consumidors potencials",v:"2,2M",s:"a les 3 regions"},
+   {l:"SOM (3 anys)",v:"€0,6M",s:"~0,5% del TAM"}
+  ],'kpisMercat');
+  const mx=FUNNEL[0][1];
+  document.getElementById('funnelMercat').innerHTML=FUNNEL.map(([l,v,c])=>
+   `<div class="bar" style="background:${c};width:${Math.max(38,v/mx*100)}%">${l}<small>${(v/1e6).toFixed(2)}M</small></div>`).join('');
+  mk('chTam',{type:'bar',data:{labels:["TAM","SAM","SOM"],datasets:[{data:[MERCAT.tam,MERCAT.sam,MERCAT.som],
+    backgroundColor:['#A0493A','#BC6A52','#D49680'],borderRadius:6}]},options:baseOpts(v=>'€'+v+'M')});
+  let h='<thead><tr><th>Regió</th><th>Població</th><th>% del total</th></tr></thead><tbody>';
+  POB.forEach(([l,v])=>h+=`<tr><td>${l}</td><td>${v.toLocaleString('ca-ES')}</td><td>${(v/POBTOT*100).toFixed(0)}%</td></tr>`);
+  h+=`<tr class="tot"><td>Total</td><td>${POBTOT.toLocaleString('ca-ES')}</td><td>100%</td></tr>`;
+  document.getElementById('tblPob').innerHTML=h+'</tbody>';
+}
+function drawPyl(){
+  let h='<thead><tr><th>Concepte</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  PLA3.rows.forEach(([l,v,f])=>{const cls=f=='t'?'tot':f=='h'?'sub-h':'';
+   h+=`<tr class="${cls}"><td>${l}</td>${v.map(x=>`<td class="${x<0?'neg':''}">${eur(x)}</td>`).join('')}</tr>`;});
+  document.getElementById('tblPyl').innerHTML=h+'</tbody>';
+  mk('chBE',{type:'bar',data:{labels:PLA3.anys,datasets:[
+    {label:'Vendes',data:PLA3.rows.find(r=>r[0]=="Vendes")[1],backgroundColor:'#A0493A',borderRadius:5},
+    {label:"Punt d'equilibri",data:PLA3.rows.find(r=>r[0]=="Punt d'equilibri")[1],backgroundColor:'#C2872B',borderRadius:5}]},
+    options:baseOpts(eurk)});
+  const IND=[["% Marge brut","50%","50%","50%"],["Nº empleats","1","3","6*"],
+   ["Vendes/empleat","€58.971","€89.082","€56.489*"],["% Endeutament","30%","40%","30%"]];
+  let ih='<thead><tr><th>Indicador</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  IND.forEach(r=>ih+=`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`);
+  ih+='<tr><td colspan="4" class="note" style="text-align:left">* amb l\'escenari planta (6 persones). El pla base preveu 3.</td></tr>';
+  document.getElementById('tblInd').innerHTML=ih+'</tbody>';
+}
+function drawPlanta(){
+  kpi([
+   {l:"Inversió planta",v:"€350k",s:"amort. 10 anys"},
+   {l:"Marge brut",v:"55% → 85%",s:"COGS a 1/3"},
+   {l:"Break-even (equip real)",v:"€540k",s:"vs €568k sense"},
+   {l:"Avantatge a €600k",v:"+€26k/any",s:"+€146k a €1M"}
+  ],'kpisPlanta');
+  const xs=[250,400,600,800,1000];
+  const noP=xs.map(r=>r*1000*0.275-PLANT.fixNo);
+  const yesP=xs.map(r=>r*1000*PLANT.cm-PLANT.fixYes);
+  mk('chPlant',{data:{labels:xs.map(v=>'€'+v+'k'),datasets:[
+    {type:'line',label:'Sense planta',data:noP,borderColor:'#C00000',borderWidth:2,tension:.2,pointRadius:3},
+    {type:'line',label:'Amb planta',data:yesP,borderColor:'#5b7d3a',borderWidth:2,tension:.2,pointRadius:3}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},
+    scales:{y:{ticks:{callback:eurk}}}}});
+  let bh='<tbody>'+
+   `<tr><td>Break-even AMB planta</td><td>${eur(PLANT.beYes)}/any</td></tr>`+
+   `<tr><td>Break-even SENSE planta</td><td>${eur(PLANT.beNo)}/any</td></tr>`+
+   `<tr class="tot"><td>Creuament (planta > compra)</td><td>${eur(PLANT.cross)}/any</td></tr></tbody>`;
+  document.getElementById('tblBE').innerHTML=bh;
+  let th='<thead><tr><th></th><th>Construir 2027</th><th>Construir 2028</th></tr></thead><tbody>';
+  TIMING.forEach(([l,a,b],i)=>{const f=i==2;
+   th+=`<tr class="${f?'tot':''}"><td>${l}</td><td class="${f&&a<0?'neg':''}">${f?eur(a):(l.includes('equil')?eur(a):eur(a))}</td>
+    <td class="${f&&b<0?'neg':''}">${eur(b)}</td></tr>`;});
+  th+=`<tr><td>Veredicte</td><td><span class="chip b">sagna</span></td><td><span class="chip g">funciona</span></td></tr>`;
+  document.getElementById('tblTiming').innerHTML=th+'</tbody>';
+  const fq=PLANT.fixYes/4;
+  let sh='<thead><tr><th>Trimestre</th><th>Vendes</th><th>EBIT</th><th></th></tr></thead><tbody>';
+  SALES2028.forEach(([q,v])=>{const e=v*PLANT.cm-fq;
+   sh+=`<tr><td>${q} 2028</td><td>${eur(v)}</td><td class="${e<0?'neg':'pos'}">${eur(e)}</td>
+    <td>${e>0?'<span class="chip g">✓</span>':'<span class="chip w">·</span>'}</td></tr>`;});
+  document.getElementById('tblSales').innerHTML=sh+'</tbody>';
+}
+function drawEquip(){
+  kpi([{l:"Equip 2028",v:"6 persones",s:"vs 3 al pla base"},
+   {l:"Cost personal 2028",v:"€169k",s:"net de subvenció"},
+   {l:"Estalvi subvenció",v:"~€50k",s:"18 mesos"}],'kpisEquip');
+  mk('chTeam',{type:'bar',data:{labels:TEAMNET.map(r=>r[0]),datasets:[{data:TEAMNET.map(r=>r[1]),
+    backgroundColor:'#A0493A',borderRadius:5}]},options:baseOpts(eurk)});
+  mk('chHead',{type:'bar',data:{labels:HEAD.map(r=>r[0]),datasets:[{data:HEAD.map(r=>r[1]),
+    backgroundColor:'#6E7B4F',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{stepSize:1}}}}});
+  let h='<thead><tr><th>Rol</th><th>Inici</th><th>Brut €/mes</th><th>Carregat 2028 €/any</th><th></th></tr></thead><tbody>';
+  ROLES.forEach(([r,s,g,l,p])=>h+=`<tr><td>${r}</td><td>${s}</td><td>${g=="—"?"—":eur(g)}</td><td>${eur(l)}</td>
+    <td>${p=="planta"?'<span class="chip w">planta</span>':''}</td></tr>`);
+  const tot=ROLES.reduce((a,r)=>a+r[3],0);
+  h+=`<tr class="tot"><td>Total carregat (2028)</td><td colspan="2"></td><td>${eur(tot)}</td><td></td></tr>`;
+  document.getElementById('tblRoles').innerHTML=h+'</tbody>';
+}
+function drawFin(){
+  kpi([{l:"Ronda (tancament Q2-2027)",v:"€500k",s:"mixta"},
+   {l:"No dilutiu",v:"~77%",s:"només àngels dilueix"},
+   {l:"Per la planta",v:"~€350k",s:"després de runway"},
+   {l:"Runway comercial+equip",v:"~€150k",s:"del model 3 anys"}],'kpisFin');
+  mk('chFin',{type:'doughnut',data:{labels:FIN.map(f=>f[0]),datasets:[{data:FIN.map(f=>f[1]),
+    backgroundColor:FIN.map(f=>f[2])}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
+    tooltip:{callbacks:{label:c=>c.label+': '+eur(c.parsed)}}}}});
+  let h='<thead><tr><th>Capa</th><th>Import</th><th>Dilutiu?</th></tr></thead><tbody>';
+  FIN.forEach(([l,v,c,d])=>h+=`<tr><td><span class="sw" style="background:${c}"></span>${l}</td><td>${eur(v)}</td>
+    <td>${d=="Sí"?'<span class="chip b">Sí</span>':'<span class="chip g">No</span>'}</td></tr>`);
+  h+=`<tr class="tot"><td>Total</td><td>${eur(FINTOT)}</td><td></td></tr>`;
+  document.getElementById('tblFin').innerHTML=h+'</tbody>';
+}
+// ---- Supòsits interactius ----
+function recalc(){
+  const rev=+sRev.value,gm=+sGm.value/100,team=+sTeam.value,fix=+sFix.value;
+  vRev.textContent=eur(rev);vGm.textContent=(gm*100).toFixed(0)+'%';vTeam.textContent=team;vFix.textContent=eur(fix);
+  const personal=team*29000, overhead=90000, marketing=rev*0.25, fees=rev*0.025;
+  const gp=rev*gm, ebit=gp-marketing-fees-personal-overhead-fix;
+  const be=(personal+overhead+fix)/(gm-0.275);
+  document.getElementById('scnres').innerHTML=[
+   {y:"EBIT any 3",n:eur(ebit),c:ebit>=0?'pos':'neg'},
+   {y:"Break-even",n:eur(be)},
+   {y:"Marge EBIT",n:(ebit/rev*100).toFixed(0)+'%',c:ebit>=0?'pos':'neg'}
+  ].map(x=>`<div class="b"><div class="y">${x.y}</div><div class="n ${x.c||''}">${x.n}</div></div>`).join('');
+}
+['sRev','sGm','sTeam','sFix'].forEach(id=>document.getElementById(id).addEventListener('input',recalc));
+
+// ---- Benchmark ----
+const BENCH=[
+ {n:"B3tter Foods",c:"Barcelona · 2021",col:"#A0493A",pts:[[2,0.6]],note:"Rendible al 4t mes · bootstrapped (€50k) · 80% retail · 300+ punts de venda"},
+ {n:"Be Levels",c:"Madrid · 2020",col:"#C2872B",pts:[[4,7]],note:"Creixement triple dígit · rendible any 2 · producció pròpia · €6M ronda 2024 (Axon)"},
+ {n:"MyProtein",c:"UK · 2004",col:"#6E7B4F",pts:[[7,20]],note:"De £500 a venda per £58M en 7 anys (facturació ~£20M aprox.)"},
+ {n:"Prozis",c:"Portugal · 2007",col:"#3E7378",pts:[[8,45],[11,120],[18,250]],note:"Integració vertical (fàbriques) · 2.000+ empleats · €250M (2025)"},
+ {n:"HSN",c:"Granada · 2007",col:"#8a7d75",pts:[[18,200]],note:"Fàbrica pròpia l'any 11 (2018) · ~€200M avui · 400 empleats"},
+];
+const QVPTS=[["Base",0.339,"#5b7d3a"],["Growth",0.6,"#A0493A"],["Aggressive",1.0,"#b23a2e"]];
+const BENCHLES=[
+ ["Temps a escala","anys, no trimestres · B3tter €0,6M en 2 anys, Be Levels €7M en 4"],
+ ["Rendibilitat","guanyadors rendibles d'hora (B3tter mes 4, Be Levels any 2)"],
+ ["Capital","van aixecar tard, per accelerar — no per sobreviure"],
+ ["Planta pròpia","només després d'escalar (Prozis/HSN: &gt;€100M, una dècada)"],
+ ["Marge brut DTC food","40-50% comprant; la planta el puja a ~85%"],
+ ["Fracàs","~70% de marques DTC tanquen abans de l'any 3"],
+];
+function drawBench(){
+  let h='<thead><tr><th>Empresa</th><th>Trajectòria</th></tr></thead><tbody>';
+  BENCH.forEach(b=>h+=`<tr><td><b>${b.n}</b><br><span class="mut" style="font-size:11px">${b.c}</span></td><td style="text-align:left">${b.note}</td></tr>`);
+  document.getElementById('tblBench').innerHTML=h+'</tbody>';
+  let lh='<tbody>';BENCHLES.forEach(([k,v])=>lh+=`<tr><td><b>${k}</b></td><td style="text-align:left">${v}</td></tr>`);
+  document.getElementById('tblBenchLes').innerHTML=lh+'</tbody>';
+  const ds=BENCH.map(b=>({label:b.n,data:b.pts.map(p=>({x:p[0],y:p[1]})),borderColor:b.col,backgroundColor:b.col,showLine:b.pts.length>1,borderWidth:2,pointRadius:4,tension:.2}));
+  ds.push({label:"Quota Vita (any 3)",data:QVPTS.map(p=>({x:3,y:p[1]})),backgroundColor:"#2b2320",borderColor:"#2b2320",pointRadius:7,pointStyle:'rectRot',showLine:false});
+  mk('chBench',{type:'scatter',data:{datasets:ds},options:{plugins:{legend:{display:true,labels:{boxWidth:10,font:{size:10}}},
+    tooltip:{callbacks:{label:c=>c.dataset.label+': any '+c.parsed.x+' · €'+c.parsed.y+'M'}}},
+    scales:{x:{title:{display:true,text:'anys des de la fundació'},min:0,max:19},
+      y:{type:'logarithmic',title:{display:true,text:'facturació €M'}}}}});
+}
+// ---- Escenaris ----
+const SCN=[
+ {k:"Base (pla)",rev:[59,267,339],ebit:[0,17,40],fund:"~€30k (gairebé auto)",plant:"No — per sota del llindar",cagr:"140%",bench:"Camí lean tipus B3tter però més lent"},
+ {k:"Growth",rev:[60,250,600],ebit:[-56,-53,40],fund:"€466k (op €116k + planta €350k)",plant:"Marginal (+€26k/any)",cagr:"216%",bench:"On va arribar B3tter (~€600k) — ells sense ronda"},
+ {k:"Aggressive",rev:[60,450,1000],ebit:[-59,-97,180],fund:"€499k (op €149k + planta €350k)",plant:"Essencial (+€254k/any)",cagr:"308%",bench:"Ritme tipus Be Levels; planta clau"},
+];
+function drawEsc(){
+  mk('chEsc',{type:'bar',data:{labels:SCN.map(s=>s.k),datasets:[
+    {label:'Vendes 2028',data:SCN.map(s=>s.rev[2]*1000),backgroundColor:'#A0493A',borderRadius:5},
+    {label:'EBIT 2028',data:SCN.map(s=>s.ebit[2]*1000),backgroundColor:'#6E7B4F',borderRadius:5}]},
+    options:baseOpts(eurk)});
+  let fh='<thead><tr><th>Escenari</th><th>Finançament</th><th>Planta</th></tr></thead><tbody>';
+  SCN.forEach(s=>fh+=`<tr><td><b>${s.k}</b></td><td style="text-align:left">${s.fund}</td><td style="text-align:left">${s.plant}</td></tr>`);
+  document.getElementById('tblEscFund').innerHTML=fh+'</tbody>';
+  let h='<thead><tr><th>Mètrica</th><th>Base</th><th>Growth</th><th>Aggressive</th></tr></thead><tbody>';
+  [["Vendes 2026","rev",0],["Vendes 2027","rev",1],["Vendes 2028","rev",2],["EBIT 2028","ebit",2]].forEach(([l,f,i])=>{
+    h+=`<tr><td>${l}</td>`+SCN.map(s=>`<td class="${s[f][i]<0?'neg':''}">${eur(s[f][i]*1000)}</td>`).join('')+'</tr>';});
+  h+=`<tr><td>CAGR (2 anys)</td>`+SCN.map(s=>`<td>${s.cagr}</td>`).join('')+'</tr>';
+  h+=`<tr class="sub-h"><td>vs benchmark</td>`+SCN.map(s=>`<td style="text-align:left;font-weight:500">${s.bench}</td>`).join('')+'</tr>';
+  document.getElementById('tblEsc').innerHTML=h+'</tbody>';
+}
+// ---- Marges & canals ----
+const CHAN=[
+ ["Pols (compra WPC) — avui","55%","~40% (26-47%)","No — massa prim","b"],
+ ["Beguda fermentada (formatgeria)","58-70%","30-49%","Depèn del COGS del sèrum","w"],
+ ["Planta completa (COGS −50%)","77%","~65%","Sí — fort","g"],
+];
+const STAGE=[
+ ["Pols (compra WPC)","55%","€567k","€0"],
+ ["Beguda a formatgeria (toll)","58-70%","€490-355k","~€0"],
+ ["Beguda màquina pròpia","58-70%","€590-425k","€80k"],
+ ["Planta completa","77%","€620k","€350k"],
+];
+function drawMarges(){
+  let h='<thead><tr><th>Etapa de producció</th><th>Marge DTC</th><th>Marge engròs</th><th>Retail viable?</th></tr></thead><tbody>';
+  CHAN.forEach(([e,d,w,r,c])=>h+=`<tr><td>${e}</td><td>${d}</td><td>${w}</td><td><span class="chip ${c}">${r}</span></td></tr>`);
+  document.getElementById('tblChan').innerHTML=h+'</tbody>';
+  let sh='<thead><tr><th>Etapa</th><th>Marge</th><th>Break-even</th><th>Inversió</th></tr></thead><tbody>';
+  STAGE.forEach(([n,m,b,c],i)=>sh+=`<tr class="${i==1?'sub-h':''}"><td>${n}</td><td>${m}</td><td>${b}</td><td>${c}</td></tr>`);
+  sh+='<tr><td colspan="4" class="note" style="text-align:left">Beguda a formatgeria: break-even ~€355-490k (segons COGS del sèrum) amb inversió gairebé zero — el punt dolç fins que el volum justifiqui la planta.</td></tr>';
+  document.getElementById('tblStage').innerHTML=sh+'</tbody>';
+  const xs=[400,600,800,1000,1200,1400];
+  const drink=xs.map(r=>r*1000*0.305-150000);  // beguda realista 58% (CM 30,5%)
+  const plant=xs.map(r=>r*1000*0.50-310000);
+  mk('chDrink',{data:{labels:xs.map(v=>'€'+v+'k'),datasets:[
+    {type:'line',label:'Beguda (formatgeria)',data:drink,borderColor:'#A0493A',borderWidth:2,tension:.2,pointRadius:3},
+    {type:'line',label:'Planta completa',data:plant,borderColor:'#6E7B4F',borderWidth:2,tension:.2,pointRadius:3}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},
+    scales:{y:{ticks:{callback:eurk}}}}});
+}
+// ---- Mix beguda/pols ----
+const MIXP={pm:0.55,dmR:0.58,dmO:0.70,fixed:160000,off:0.275,rev:600000};
+const MIXES=[0,0.10,0.35,0.50,1.0];
+function mixCalc(d,dm){const bl=d*dm+(1-d)*MIXP.pm;const cm=bl-MIXP.off;return {bl,cm,be:MIXP.fixed/cm,ebit:MIXP.rev*cm-MIXP.fixed};}
+function drawMix(){
+  const lab=MIXES.map(d=>`${Math.round(d*100)}% beguda`);
+  const cR=MIXES.map(d=>mixCalc(d,MIXP.dmR)), cO=MIXES.map(d=>mixCalc(d,MIXP.dmO));
+  const legOpt={plugins:{legend:{display:true,labels:{boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},scales:{y:{ticks:{callback:eurk}}}};
+  mk('chMix',{type:'bar',data:{labels:lab,datasets:[
+    {label:'EBIT realista (beguda 58%)',data:cR.map(x=>x.ebit),backgroundColor:'#A0493A',borderRadius:5},
+    {label:'EBIT amb sèrum gratis (beguda 70%)',data:cO.map(x=>x.ebit),backgroundColor:'#5b7d3a',borderRadius:5}]},options:legOpt});
+  mk('chMixBE',{type:'bar',data:{labels:lab,datasets:[{data:cR.map(x=>x.be),backgroundColor:'#C2872B',borderRadius:5}]},options:baseOpts(eurk)});
+  let h='<thead><tr><th>Mix (beguda/pols)</th><th>Marge combinat*</th><th>Break-even*</th><th>EBIT@600k realista</th><th>EBIT@600k sèrum gratis</th></tr></thead><tbody>';
+  MIXES.forEach((d,i)=>{const x=cR[i],o=cO[i];const hl=(d==0.35||d==0.5)?'sub-h':'';
+    h+=`<tr class="${hl}"><td>${Math.round(d*100)}% / ${100-Math.round(d*100)}%</td><td>${(x.bl*100).toFixed(1)}%</td>
+      <td>${eur(x.be)}</td><td class="${x.ebit<0?'neg':'pos'}">${eur(x.ebit)}</td><td class="${o.ebit<0?'neg':'pos'}">${eur(o.ebit)}</td></tr>`;});
+  h+='<tr><td colspan="5" class="note" style="text-align:left">*amb marge realista de la beguda (58%, preu tipus YoPro €2,14 ex-IVA). Última columna: si el sèrum gratis baixa el COGS i la beguda arriba a 70%.</td></tr>';
+  document.getElementById('tblMix').innerHTML=h+'</tbody>';
+}
+// ---- Retorn 5 anys ----
+const FIVE={mult:11,stake:0.11,inv:175000,years:[2026,2027,2028,2029,2030],
+ s:[{k:"Prudent",rev:[60,300,600,1000,1500],ebit:[-30,10,80,180,300],col:"#8a7d75"},
+    {k:"Creixement",rev:[60,350,800,1500,2500],ebit:[-56,-30,40,250,600],col:"#C2872B"},
+    {k:"Agressiu",rev:[60,450,1000,2200,4000],ebit:[-59,-97,180,650,1200],col:"#A0493A"}]};
+function drawFive(){
+  mk('chFive',{data:{labels:FIVE.years,datasets:FIVE.s.map(x=>({label:x.k,data:x.ebit.map(v=>v*1000),
+    borderColor:x.col,backgroundColor:x.col,borderWidth:2,tension:.2,pointRadius:3}))},
+    options:{plugins:{legend:{display:true,labels:{boxWidth:10,font:{size:11}}},
+    tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},scales:{y:{ticks:{callback:eurk}}}}});
+  let h='<thead><tr><th>Escenari</th><th>Vendes 2030</th><th>EBIT 2030</th><th>Marge</th><th>Sortida (11x)</th><th>Àngel (11%)</th><th>Múltiple</th><th>TIR</th></tr></thead><tbody>';
+  FIVE.s.forEach(x=>{const r5=x.rev[4]*1000,e5=x.ebit[4]*1000,mg=e5/r5,ex=e5*FIVE.mult,ar=ex*FIVE.stake,m=ar/FIVE.inv,irr=Math.pow(m,1/5)-1;
+    const hl=x.k=="Agressiu"?'sub-h':'';
+    h+=`<tr class="${hl}"><td><b>${x.k}</b></td><td>${eur(r5)}</td><td>${eur(e5)}</td><td>${(mg*100).toFixed(0)}%</td>
+      <td>${eur(ex)}</td><td>${eur(ar)}</td><td>${m.toFixed(1)}x</td><td>${(irr*100).toFixed(0)}%</td></tr>`;});
+  document.getElementById('tblFive').innerHTML=h+'</tbody>';
+}
+// ---- Cap table ----
+const CAP={pre:1415909,inv:175000,post:1590909,founder:0.89,angel:0.11};
+function drawCap(){
+  let h='<thead><tr><th>Soci</th><th>Pre-ronda</th><th>Post-ronda</th></tr></thead><tbody>';
+  h+=`<tr><td>Gerard (fundador)</td><td>100%</td><td><b>${(CAP.founder*100).toFixed(0)}%</b></td></tr>`;
+  h+=`<tr><td>Àngels (BANC / ESADE BAN)</td><td>—</td><td>${(CAP.angel*100).toFixed(0)}%</td></tr>`;
+  h+=`<tr class="tot"><td>Total</td><td>100%</td><td>100%</td></tr>`;
+  h+=`<tr><td>Valoració pre-money</td><td colspan="2" style="text-align:right">${eur(CAP.pre)}</td></tr>`;
+  h+=`<tr><td>Inversió àngels</td><td colspan="2" style="text-align:right">${eur(CAP.inv)}</td></tr>`;
+  h+=`<tr class="tot"><td>Post-money</td><td colspan="2" style="text-align:right">${eur(CAP.post)}</td></tr>`;
+  document.getElementById('tblCap').innerHTML=h+'</tbody>';
+  mk('chCap',{type:'doughnut',data:{labels:['Gerard 89%','Àngels 11%'],datasets:[{data:[89,11],
+    backgroundColor:['#A0493A','#C2872B']}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12}},
+    tooltip:{callbacks:{label:c=>c.label}}}}});
+  let e='<thead><tr><th>Escenari</th><th>Sortida (11x)</th><th>Gerard (89%)</th><th>Àngels (11%)</th><th>Múltiple àngel</th></tr></thead><tbody>';
+  FIVE.s.forEach(x=>{const e5=x.ebit[4]*1000,ex=e5*FIVE.mult,g=ex*CAP.founder,a=ex*CAP.angel,m=a/FIVE.inv;
+    const hl=x.k=="Agressiu"?'sub-h':'';
+    e+=`<tr class="${hl}"><td><b>${x.k}</b></td><td>${eur(ex)}</td><td>${eur(g)}</td><td>${eur(a)}</td><td>${m.toFixed(1)}x</td></tr>`;});
+  document.getElementById('tblCapExit').innerHTML=e+'</tbody>';
+}
+// ---- MIT DE 24 passos ----
+const DEG={1:"1 · Who is your customer?",2:"2 · What can you do for your customer?",3:"3 · Acquisition, model & economics",4:"4 · Validation & product plan"};
+const DE=[
+ {n:1,g:1,t:"Market Segmentation",x:`Five real segments: Catalan gym / CrossFit / running-club members 25-45 (Maresme + Barcelona); prescriber-referred clients (physios, dietitians, trainers via discount code — the validated recurring channel); clean-label wellness shoppers wary of 'fitness-bro' supplements; local B2B retail buyers (supplement shops, gyms with counters, small supermarkets); sustainability-minded consumers drawn to the circular whey story. Channels: DTC Shopify, prescriber referral, local B2B — not marketplaces yet.`},
+ {n:2,g:1,t:"Beachhead Market",x:`Physically active adults 25-45 in Catalonia (Maresme + Barcelona metro first) linked to gyms, CrossFit, running clubs and prescribers, buying via Shopify + referrals. Catalan-speaking; value local flavour, clean formulas, digestive comfort. Expansion: Catalonia → Valencia + Balearics → rest of Spain. First repeatable engine = DTC + prescriber referral in Catalonia.`},
+ {n:3,g:1,t:"End User Profile",x:`Catalan active adult 25-45, trains 3-5×/week, health- and taste-driven, clean-label aware, wants flavour that 'tastes like home' (crema catalana / horchata). Today: AOV ~€30, trials 300/750g then upgrades to 1500g, repeat 11.2% (must reach ~20%). Catalan first; skeptical of foreign supplement marketing.`},
+ {n:4,g:1,t:"Beachhead TAM",x:`Broad market (whey powder + protein drinks, 3 regions, 14.8M people): ~€113M/yr today → ~€151M by 2030. Catalonia beachhead ≈ €60M/yr (8.15M × ~50% sport × ~30% potential × ~40% buy × ~€125). SAM (DTC + prescribers + local retail) ~€17M; SOM (3 yr) ~€0.6M.`},
+ {n:5,g:1,t:"Persona — 'Marta'",x:`30, Maresme/Barcelona, trains 4×/week, office professional, Catalan-speaking, reads ingredient lists, hates chalky/over-sweet whey and digestive discomfort. Priorities: digestion 25, local flavour 20, clean label 20, protein 15, convenience 10, price-value 10. Economic buyer = herself; champion = her physio/trainer.`},
+ {n:6,g:1,t:"Full Life-Cycle Use Case",x:`Discovers via Instagram/TikTok, a local gym, or a prescriber code → trials 300/750g crema catalana → daily post-workout/breakfast shake → judges taste, mixability, digestion → reorders (~every 2 months; today only 11.2%) → upgrades to 1500g → later tries the fermented drink. Biggest gap: the first-purchase → repeat loop.`},
+ {n:7,g:2,t:"High-Level Product Spec",x:`Brand: Quota Vita. Whey powder in crema catalana + horchata (summer) + blackberry (Sept 2026); 300/750/1500/4kg; 12-month shelf life; low ingredient lists; Catalan/Spanish labels. Plus the liquid MVP: a fermented whey drink from cheese-factory by-product + a little WPC, 250ml, ~20g protein. Promise: real protein grams, clean label, local flavour, consistent batch-to-batch.`},
+ {n:8,g:2,t:"Quantified Value Proposition",x:`Priority = trustworthy, consistent, region-relevant, clean protein they stick with. Measured by repeat (11.2% → ≥20% in 60-90 days), AOV (~€30), blended gross margin (51%, 63% on 1500g), taste / no-digestive-issue satisfaction. 'As-is' = generic global whey, weak repeat; 'possible' = Catalan clean whey + local drink → higher adherence.`},
+ {n:9,g:2,t:"Next 10 Customers",x:`Real pipeline. Won: EVO GYM, NLVIP Nutrition, Sentebe Gym, Ekobo Alimentació, Germanes Serra, Ariadna Subasic. Active prospects: Grup Sorli (~€4k), The Nutrition Store, Linverd Sant Cugat, Physique Pro, Jaleo Sant Cugat, Wellness Vallés, Açai Girona (contract sent), Bonpreu Premià, CrossFit Mataró, Clínica Esportiva BCN, Landa Fit, Sunrise Run & Ride, BMB Padel. Common trait: local Catalan gyms / shops / prescribers that re-order.`},
+ {n:10,g:2,t:"Define the Core",x:`Proprietary 'cheese-factory whey → local protein' capability: (1) a process turning Catalan cheese-factory whey by-product into a fermented drink + concentrate (pilot: 60L processed, WPC60 reached, targeting WPC80), plus (2) a region/season flavour-localization engine. Moats: cheese-factory supply relationships, clean-label brand trust, localization cadence. Know-how + relationships, not deep IP yet.`},
+ {n:11,g:2,t:"Competitive Position",x:`vs MyProtein / Prozis (~€250M, own factories) / HSN (~€200M) — strong on scale/price, weak on local flavour + circular sourcing; vs YoPro (Danone) / Arla — scale, not local/artisan. Position upper-right: local flavour + authenticity × clean/low-ingredient + circular sourcing. 'Do nothing' = keep buying generic whey; we win on taste-fit, local identity, digestion.`},
+ {n:12,g:3,t:"Decision-Making Unit (DMU)",x:`Mostly B2C: end user = economic buyer (self-purchase, AOV ~€30). Champions = prescribers (physios, dietitians, trainers) and gym owners recommending via code. Influencers = local fitness/nutrition creators. Vetoes = food regulatory & labelling (RSIPAC/RGSEAA, claims, allergens); for the drink, HACCP registration is a hard gate.`},
+ {n:13,g:3,t:"Customer Acquisition Process",x:`(a) DTC Shopify — social/creator + prescriber codes → clear PDP → checkout; (b) prescriber referral — recommend + code; (c) B2B retail — founder-led visits with wholesale tasting + margin sheet. Ads ~€1,160 YTD (Google+Meta) for ~237 units → ads-only CAC ~€5/unit (NOT fully loaded). Repeat 11.2% is the weak point.`},
+ {n:14,g:3,t:"Follow-on TAM",x:`After Catalonia: (1) all of Spain (sports-nutrition ~€1.9B, whey ~€335M); (2) the RTD protein-drink category via the fermented drink; (3) national B2B retail; (4) Iberia / Southern Europe with the same local-flavour + circular playbook. Vertical integration (own plant) = long-term margin unlock at scale (>€600k-1M).`},
+ {n:15,g:3,t:"Business Model",x:`One-time upfront consumable per pack via DTC + local retail, pushing 1500g for margin/AOV; plus prescriber referral (code + small commission) and B2B wholesale (lower, separate price column). Subscription only after repeat proves out. Liquid drink = per-bottle/multipack, produced at a cheese factory (toll) to stay capital-light. Fixed ~€3k/mo, solo founder.`},
+ {n:16,g:3,t:"Pricing Framework",x:`Real B2C ex-IVA: 300g €16-17, 750g €27-36, 1500g €68-72, 4kg €145-156 (+10% VAT); wholesale a separate lower column (1500g ~€47.66). Variable costs 9/15/25/59 → 26-47% wholesale, 59-63% DTC on 1500g/4kg, blended 51%. Drink ceiling ~€2.14 ex-IVA (YoPro €2.35/300g/25g; Arla £2.20/482ml/26g). Anchor = 1500g.`},
+ {n:17,g:3,t:"Lifetime Value (LTV)",x:`Real inputs: AOV ~€30, blended gross margin 51%, repeat 11.2% (target 20%), no subscription, 50% discount rate → modest LTV ~€20-45 (far below the fantasy €95). The two biggest levers: raise repeat 11.2% → 20% and push 1500g. The CAC:LTV sheet is currently empty — a real gap.`},
+ {n:18,g:4,t:"Sales Process",x:`Short: DTC Shopify + prescriber referrals + founder-led B2B visits (Step 9 list). Medium: regional retail rollout (Maresme → Barcelona → Catalonia), distributor pilots, a reorder/retention program to lift repeat. Long: Spain retail + fermented drink at cheese factories. Metrics: DTC CAC payback, prescriber order share, B2B sell-through, repeat 30/60/90d.`},
+ {n:19,g:4,t:"Cost of Customer Acquisition (COCA)",x:`Ads ~€1,160 YTD for ~237 units → ads-only CAC ~€5/unit, NOT fully loaded (excludes founder time, sampling, prescriber incentives). Real base = ~205 customers over ~6 months (not 12,000-45,000/yr). Honest blended COCA is unknown and must be built — CAC:LTV is the #1 missing number for investors.`},
+ {n:20,g:4,t:"Key Assumptions",x:`(1) drink COGS at a cheese factory is low enough for viable margin at ~€2.14; (2) repeat can rise 11.2% → 20%; (3) prescriber referral scales; (4) B2B works despite thin wholesale margins (26-47%); (5) drink clears regulatory (RSIPAC/HACCP/shelf-life); (6) local flavour truly drives higher repeat; (7) cheese-factory supply is real and reliable (unverified).`},
+ {n:21,g:4,t:"Test Key Assumptions",x:`(a) real toll-production quote from 1-2 cheese factories + WPC needed → validates drink COGS; (b) micro-batch + shelf-life/HACCP checks → regulatory gate; (c) per-SKU preorder landing pages → willingness-to-pay + repeat intent; (d) sign 5-10 prescribers on codes → referred-order rate; (e) B2B pilot with 3 named shops → sell-through; (f) reorder-reminder test → move repeat toward 20%.`},
+ {n:22,g:4,t:"Minimum Viable Business Product",x:`Already exists and sells: crema catalana 300/750/1500g on Shopify (real revenue) + prescriber referral. Add: horchata (summer), blackberry (Sept 2026), and a fermented blackberry drink micro-batch produced at a cheese factory (toll), sold as a limited pilot to test willingness-to-pay + repeat. Project from real numbers (AOV €30, 51% margin, 11.2% repeat), not invented volumes.`},
+ {n:23,g:4,t:"Show the Dogs Will Eat the Dog Food",x:`Real metrics (Shopify, Jan-16 Jul 2026): 253 orders, 205 customers, AOV ~€30, repeat 11.2% (target 20%), blended margin ~51% (63% on 1500g), ads-only CAC ~€5/unit, best month ~€1,938. Honest read: real purchases exist, but repeat and CAC:LTV are unproven — the dogs eat, but don't come back enough yet.`},
+ {n:24,g:4,t:"Product Plan",x:`NOW — crema catalana + horchata powder (300/750/1500g), DTC + prescribers + local retail, push 1500g; 12-month shelf; low-ingredient. Sept 2026 — blackberry powder + launch the fermented drink (250ml/20g) as a cheese-factory toll MVP (near-zero CAPEX, free whey, borrow their registration). Scale — grow drink mix + B2B; own plant (~€350k) only above ~€600k-1M. Critical path = regulatory, not chemistry.`},
+];
+function drawDE(){
+  let html='';
+  [1,2,3,4].forEach(g=>{
+    html+=`<div class="card" style="margin-bottom:13px"><h2>${DEG[g]}</h2>`;
+    DE.filter(s=>s.g==g).forEach(s=>{
+      html+=`<div style="display:flex;gap:11px;padding:10px 0;border-top:1px solid var(--line)">
+        <div style="flex:0 0 30px;height:30px;border-radius:8px;background:var(--brand);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px">${s.n}</div>
+        <div><div style="font-weight:700;margin-bottom:3px">${s.t}</div><div style="font-size:12.5px;line-height:1.55">${s.x}</div></div></div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('deWrap').innerHTML=html;
+}
+function draw(t){({resum:drawResum,de:drawDE,mercat:drawMercat,pyl:drawPyl,planta:drawPlanta,equip:drawEquip,marges:drawMarges,mix:drawMix,fin:drawFin,bench:drawBench,escenaris:drawEsc,retorn:drawFive,captable:drawCap,sup:recalc}[t]||(()=>{}))();}
+drawResum();
+</script>
+</body>
+</html>
