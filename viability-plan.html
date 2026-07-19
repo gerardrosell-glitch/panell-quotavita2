@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quota Vita — Model Estratègic 2026–2028</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+  :root{ color-scheme: light;
+    --bg:#FBF7F2; --card:#ffffff; --ink:#2b2320; --muted:#8a7d75; --line:#ece3da;
+    --brand:#A0493A; --brand-soft:#f3e7e2; --budget:#CFC1B2; --real:#A0493A;
+    --good:#5b7d3a; --bad:#b23a2e; --warn:#C2872B; --scn:#6E7B4F; --blue:#3E7378; --gold:#C2872B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:16px}
+  h1{font-size:20px;margin:0 0 2px} h2{font-size:13px;margin:0 0 11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+  h3{font-size:14px;margin:16px 0 8px}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .sub{color:var(--muted);font-size:12.5px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--line)}
+  .tab{padding:8px 13px;border:none;border-bottom:2px solid transparent;background:none;color:var(--muted);font-weight:600;cursor:pointer;font-size:13px}
+  .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+  .panel{display:none} .panel.active{display:block}
+  .grid{display:grid;gap:13px}
+  .kpis{grid-template-columns:repeat(4,1fr)} .k3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:780px){.kpis,.k3{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+  .kpi .lbl{color:var(--muted);font-size:12px;margin-bottom:5px}
+  .kpi .val{font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .kpi .delta{font-size:12.5px;font-weight:600;margin-top:3px}
+  .pos{color:var(--good)} .neg{color:var(--bad)} .mut{color:var(--muted);font-weight:500}
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:13px;margin-top:13px}
+  @media(max-width:880px){.row2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+  tr.sub-h td{font-weight:700;color:var(--brand);background:var(--brand-soft)}
+  .chip{display:inline-block;padding:1px 8px;border-radius:20px;font-weight:600;font-size:12px}
+  .chip.g{background:#eaf0e0;color:var(--good)} .chip.b{background:#f7e5e2;color:var(--bad)} .chip.w{background:#f6edd7;color:var(--warn)}
+  .note{font-size:11.5px;color:var(--muted);margin-top:9px}
+  .lead{font-size:14px;color:var(--ink);line-height:1.6;max-width:70ch}
+  canvas{max-height:300px}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .funnel{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .funnel .bar{background:var(--brand);color:#fff;border-radius:8px;padding:9px 13px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .funnel .bar small{font-weight:500;opacity:.85}
+  .slider label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:5px}
+  .slider label span{color:var(--brand)}
+  input[type=range]{width:100%;accent-color:var(--brand)}
+  .assum{display:grid;grid-template-columns:repeat(2,1fr);gap:15px 22px}
+  @media(max-width:760px){.assum{grid-template-columns:1fr}}
+  .scnres{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .scnres .b{background:var(--brand-soft);border-radius:10px;padding:11px;text-align:center}
+  .scnres .b .y{font-size:12px;color:var(--muted)} .scnres .b .n{font-size:18px;font-weight:700}
+  .verdict{background:var(--brand-soft);border-left:4px solid var(--brand);border-radius:0 10px 10px 0;padding:12px 15px;margin-top:12px;font-size:13px;line-height:1.55}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:13px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <h1 style="color:var(--brand)">Quota Vita · Model Estratègic 2026–2028</h1>
+    <div class="sub">Pla de viabilitat + dimensió de mercat, escenari planta, equip i finançament · dades reals del pla</div>
+  </div>
+</div>
+<div class="tabs" id="tabs"></div>
+
+<!-- ============ RESUM ============ -->
+<div class="panel active" data-p="resum">
+  <div class="grid kpis" id="kpisResum"></div>
+  <div class="card" style="margin-top:13px">
+    <h2>La tesi en una frase</h2>
+    <p class="lead">Quota Vita ven proteïna whey amb sabors catalans (crema catalana, horxata). Cada dia es
+    malbaraten <b>740 tones de sèrum de llet a Catalunya</b> i el <b>80% de qui fa esport té dèficit proteic</b>.
+    El pla base arriba a la rendibilitat el 2026 amb ~€339k de vendes el 2028. La <b>tesi de creixement</b> és una
+    ronda de ~€500k per construir una <b>planta pròpia de valorització del sèrum</b> que puja el marge del 55% al 85% —
+    però només compensa per sobre de ~€540k de vendes. Aquest panell mostra les dues capes: el pla i l'aposta.</p>
+  </div>
+  <div class="row2">
+    <div class="card"><h2>Resultat abans d'impostos (pla, 3 anys)</h2><canvas id="chResRdo"></canvas></div>
+    <div class="card"><h2>Mercat vs captura</h2>
+      <div class="funnel">
+        <div class="bar" style="background:var(--brand)">TAM · €113M <small>tot el mercat (3 regions)</small></div>
+        <div class="bar" style="background:#BC6A52;width:70%">SAM · €17M <small>abastable</small></div>
+        <div class="bar" style="background:#D49680;width:42%">SOM · €0,6M <small>3 anys</small></div>
+      </div>
+      <div class="note">TAM = whey en pols + begudes proteiques a Catalunya, València i Balears.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Resum del pla a 3 anys</h2><table id="tblResum3a"></table></div>
+</div>
+
+<!-- ============ MERCAT ============ -->
+<div class="panel" data-p="mercat">
+  <div class="grid kpis" id="kpisMercat"></div>
+  <div class="row2">
+    <div class="card"><h2>Embut: de població a compradors</h2>
+      <div class="funnel" id="funnelMercat"></div>
+      <div class="note">Població (INE 2025) × practicants d'esport (50%, AFEC-2019) × consumidors potencials de proteïna (30%) × adopció anual (40%).</div>
+    </div>
+    <div class="card"><h2>TAM / SAM / SOM (€M/any)</h2><canvas id="chTam"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Població objectiu (2025)</h2><table id="tblPob"></table></div>
+  <div class="verdict">El mercat no és la restricció: amb un TAM de ~€113M (creixent a ~€151M el 2030) i ~2,2M de
+    consumidors potencials, capturar 4.800 clients en 3 anys (el SOM) és ~0,5% del mercat. La feina és execució, no mida.</div>
+</div>
+
+<!-- ============ PLA FINANCER ============ -->
+<div class="panel" data-p="pyl">
+  <div class="card"><h2>Compte de resultats anual — pla base (€)</h2><table id="tblPyl"></table>
+    <div class="note">Xifres del pla de viabilitat (codi 15043). Marge brut ~50%, break-even ~€6.000/mes.</div></div>
+  <div class="row2">
+    <div class="card"><h2>Vendes vs punt d'equilibri</h2><canvas id="chBE"></canvas>
+      <div class="legend"><span><span class="sw" style="background:var(--real)"></span>Vendes</span>
+        <span><span class="sw" style="background:var(--warn)"></span>Punt d'equilibri</span></div></div>
+    <div class="card"><h2>Indicadors clau</h2><table id="tblInd"></table></div>
+  </div>
+</div>
+
+<!-- ============ PLANTA ============ -->
+<div class="panel" data-p="planta">
+  <div class="grid kpis" id="kpisPlanta"></div>
+  <div class="row2">
+    <div class="card"><h2>EBIT amb planta vs sense — segons vendes</h2><canvas id="chPlant"></canvas>
+      <div class="legend"><span><span class="sw" style="background:#C00000"></span>Sense planta (marge 55%)</span>
+        <span><span class="sw" style="background:var(--good)"></span>Amb planta (marge 85%)</span></div></div>
+    <div class="card"><h2>Punt d'equilibri</h2><table id="tblBE"></table>
+      <div class="note">La planta baixa el marge variable però afegeix costos fixos (2 operaris, QA, amortització, interessos).</div></div>
+  </div>
+  <div class="two" style="margin-top:13px">
+    <div class="card"><h2>Quan construir-la? 2027 vs 2028</h2><table id="tblTiming"></table></div>
+    <div class="card"><h2>Pla de vendes 2028 (amb planta)</h2><table id="tblSales"></table></div>
+  </div>
+  <div class="verdict"><b>Veredicte:</b> construir el 2028, no el 2027. Amb un equip real de 6 persones el break-even puja
+    a ~€540k; la planta només supera la compra de whey per sobre de ~€513k de vendes. El 2027 (a €250k) una planta ja
+    dotada de personal perdria ~€166k. El 2028, a €600k, és rendible des del Q3 i l'avantatge escala fort a volums alts
+    (~€146k/any a €1M). Risc clau: que el COGS baixi realment a 1/3 a escala de producció (avui és pilot).</div>
+</div>
+
+<!-- ============ EQUIP ============ -->
+<div class="panel" data-p="equip">
+  <div class="grid k3" id="kpisEquip"></div>
+  <div class="row2">
+    <div class="card"><h2>Cost de personal per any (net de subvenció)</h2><canvas id="chTeam"></canvas></div>
+    <div class="card"><h2>Plantilla (FTE, final d'any)</h2><canvas id="chHead"></canvas></div>
+  </div>
+  <div class="card" style="margin-top:13px"><h2>Rols, calendari i cost carregat (2028)</h2><table id="tblRoles"></table>
+    <div class="note">Carregat = brut × (1 + ~30% seg. social). 2 primers treballadors amb subvenció €1.400/mes durant 18 mesos (set-2026 → feb-2028).</div></div>
+  <div class="verdict">A €600k amb planta pròpia calen ~6 persones, no 3. El QA / tècnic alimentari no és opcional
+    (APPCC/RSIPAC per produir aliments). Això gairebé duplica el cost de personal el 2028 (de ~€94k a ~€175k) i és el
+    motiu pel qual el break-even amb planta puja a ~€540k.</div>
+</div>
+
+<!-- ============ FINANÇAMENT ============ -->
+<div class="panel" data-p="fin">
+  <div class="grid kpis" id="kpisFin"></div>
+  <div class="row2">
+    <div class="card"><h2>Estructura de la ronda (~€500k)</h2><canvas id="chFin"></canvas>
+      <div class="note">~77% no dilutiu: només dilueixes en el tram d'àngels. La resta és préstec tou + subvencions + banc.</div></div>
+    <div class="card"><h2>Capes de finançament</h2><table id="tblFin"></table></div>
+  </div>
+  <div class="verdict">Tanca ~€175k d'àngels (Q2 2027) i palanqueja ~2,8×: ICF/IFEM (1:1), ENISA (fons propis ≥ préstec),
+    subvencions (ACCIÓ, ARC) i banc amb aval. La ronda de €500k deixa ~€350k per la planta després de ~€150k de runway
+    comercial + equip. El número que falta per tancar-ho tot: el <b>cost real de la planta (CAPEX + throughput)</b>.</div>
+</div>
+
+<!-- ============ SUPÒSITS ============ -->
+<div class="panel" data-p="sup">
+  <div class="card"><h2>Escenari de creixement (mou el pla)</h2>
+    <div class="assum">
+      <div class="slider"><label>Vendes any 3 (€) <span id="vRev">600.000 €</span></label>
+        <input type="range" id="sRev" min="250000" max="1000000" value="600000" step="25000"></div>
+      <div class="slider"><label>Marge brut <span id="vGm">85%</span></label>
+        <input type="range" id="sGm" min="45" max="90" value="85" step="1"></div>
+      <div class="slider"><label>Persones a l'equip <span id="vTeam">6</span></label>
+        <input type="range" id="sTeam" min="3" max="9" value="6" step="1"></div>
+      <div class="slider"><label>Amortització + interessos planta (€/any) <span id="vFix">45.500 €</span></label>
+        <input type="range" id="sFix" min="0" max="90000" value="45500" step="2500"></div>
+    </div>
+    <div class="scnres" id="scnres"></div>
+    <div class="note">Simulació il·lustrativa (no modifica cap fitxer). Cost de personal ≈ persones × €29k carregat/any.
+      Màrqueting 25% + comissions 2,5% de vendes. Serveix per veure a partir de quines vendes la planta és rendible.</div>
+  </div>
+</div>
+
+<footer style="margin-top:22px;color:var(--muted);font-size:11px;text-align:center">
+  Quota Vita S.L. · model estratègic · xifres del pla de viabilitat + anàlisi de mercat/planta/finançament.
+  Projeccions, no compromisos. Generat 2026-07-19.
+</footer>
+
+<script>
+// ============ DADES ============
+const eur=n=>(n<0?'-':'')+'€'+Math.abs(Math.round(n)).toLocaleString('ca-ES');
+const eurk=n=>'€'+Math.round(n/1000)+'k';
+const eurM=n=>'€'+(n/1e6).toFixed(n<1e7?1:0)+'M';
+const charts={};
+function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(el)charts[id]=new Chart(el,cfg);}
+const baseOpts=(fmt)=>({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':'')+fmt(c.parsed.y ?? c.parsed.x)}}},scales:{y:{ticks:{callback:fmt}}}});
+
+// Pla base (viabilitat, real)
+const PLA3={anys:[2026,2027,2028],rows:[
+ ["Vendes",[58971,267245,338931],"h"],["Cost de compra",[-17270,-77621,-98442]],
+ ["Altres costos variables",[-12241,-55579,-70487]],["Marge brut",[29460,134045,170001],"t"],
+ ["Personal (sous + SS)",[-17000,-74464,-76528]],["Publicitat",[-3600,-3708,-3819]],
+ ["Altres fixos + subministraments",[-8112,-8273,-8521]],["Amortització",[-544,-30765,-40765]],
+ ["Total despeses fixes",[-29256,-117210,-129633],"t"],["Resultat abans impostos",[204,16835,40368],"t"],
+ ["Resultat després impostos",[157,12963,31084]],["EBITDA",[748,47600,81133],"h"],
+ ["Punt d'equilibri",[58563,233680,258449]]]};
+const rai=PLA3.rows.find(r=>r[0]=="Resultat abans impostos")[1];
+
+// Mercat
+const POB=[["Catalunya",8154627],["Comunitat Valenciana",5425182],["Illes Balears",1244394]];
+const POBTOT=14824203;
+const MERCAT={tam:113.2,tam2030:151.5,sam:17.0,som:0.6,potencials:2223630,compradors:889452};
+const FUNNEL=[["Població (3 regions)",14824203,"#8a2f24"],["Practicants d'esport (50%)",7412102,"#A0493A"],
+ ["Consumidors potencials (30%)",2223630,"#BC6A52"],["Compradors anuals (40%)",889452,"#D49680"]];
+
+// Planta
+const PLANT={capex:350000,dep:35000,interest:10500,gmNo:0.55,gmYes:0.85,cm:0.575,
+ fixYes:310220,fixNo:156240,beYes:539513,beNo:568145,cross:513267};
+const TIMING=[["Vendes l'any",250000,600000],["Break-even necessari",539513,539513],
+ ["EBIT amb planta",250000*0.575-310220,600000*0.575-310220]];
+const SALES2028=[["Q1",90000],["Q2",132000],["Q3",168000],["Q4",210000]];
+
+// Equip
+const TEAMNET=[["2026",28538],["2027",54930],["2028",169120]];
+const HEAD=[["2026",3],["2027",3.5],["2028",6]];
+const ROLES=[
+ ["Fundador / CEO","2026→2028","—",31200,"no"],
+ ["Atenció client & logística","set-2026",1600,24960,"no"],
+ ["Màrqueting & comunitat","set-2026",1800,28080,"no"],
+ ["QA / tècnic alimentari","Q4-2027",2200,34320,"planta"],
+ ["Operari de planta 1","Q1-2028",1800,28080,"planta"],
+ ["Operari de planta 2","Q1-2028",1800,28080,"planta"]];
+
+// Finançament
+const FIN=[["Àngels (equity)",175000,"#A0493A","Sí"],["ICF/IFEM co-inversió",122500,"#BC6A52","No"],
+ ["ENISA préstec tou",92700,"#C2872B","No"],["Subvencions (ACCIÓ+ARC)",60000,"#6E7B4F","No"],
+ ["Banc + Avalis",50000,"#3E7378","No"]];
+const FINTOT=500200;
+
+// ============ TABS ============
+const TABS=[["resum","Resum"],["mercat","Mercat (TAM)"],["pyl","Pla financer"],["planta","Escenari planta"],
+ ["equip","Equip"],["fin","Finançament"],["sup","Supòsits"]];
+document.getElementById('tabs').innerHTML=TABS.map((t,i)=>`<button class="tab${i==0?' active':''}" data-t="${t[0]}">${t[1]}</button>`).join('');
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');document.querySelector(`.panel[data-p="${b.dataset.t}"]`).classList.add('active');
+  draw(b.dataset.t);
+}));
+function kpi(arr,id){document.getElementById(id).innerHTML=arr.map(x=>`<div class="card kpi"><div class="lbl">${x.l}</div>
+  <div class="val">${x.v}</div><div class="delta ${x.c||''}">${x.dd||''} <span class="mut">${x.s||''}</span></div></div>`).join('');}
+
+// ============ RENDER ============
+function drawResum(){
+  kpi([
+   {l:"Vendes 2028 (pla)",v:eur(338931),s:"base"},
+   {l:"TAM (3 regions)",v:"€113M",s:"→ €151M el 2030"},
+   {l:"Ronda objectiu",v:"€500k",s:"~77% no dilutiu"},
+   {l:"Rendible des de",v:"2026",s:"pla base"}
+  ],'kpisResum');
+  mk('chResRdo',{type:'bar',data:{labels:PLA3.anys,datasets:[{data:rai,
+    backgroundColor:rai.map(v=>v>=0?'#A0493A':'#b23a2e'),borderRadius:5}]},options:baseOpts(eurk)});
+  let h='<thead><tr><th>Concepte</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  ["Vendes","Marge brut","Resultat abans impostos","EBITDA"].forEach(k=>{const v=PLA3.rows.find(r=>r[0]==k)[1];
+   h+=`<tr><td>${k}</td>${v.map(x=>`<td class="${x<0?'neg':''}">${eur(x)}</td>`).join('')}</tr>`;});
+  document.getElementById('tblResum3a').innerHTML=h+'</tbody>';
+}
+function drawMercat(){
+  kpi([
+   {l:"TAM avui",v:"€113M",s:"whey pols + begudes"},
+   {l:"TAM 2030",v:"€151M",s:"~6%/any"},
+   {l:"Consumidors potencials",v:"2,2M",s:"a les 3 regions"},
+   {l:"SOM (3 anys)",v:"€0,6M",s:"~0,5% del TAM"}
+  ],'kpisMercat');
+  const mx=FUNNEL[0][1];
+  document.getElementById('funnelMercat').innerHTML=FUNNEL.map(([l,v,c])=>
+   `<div class="bar" style="background:${c};width:${Math.max(38,v/mx*100)}%">${l}<small>${(v/1e6).toFixed(2)}M</small></div>`).join('');
+  mk('chTam',{type:'bar',data:{labels:["TAM","SAM","SOM"],datasets:[{data:[MERCAT.tam,MERCAT.sam,MERCAT.som],
+    backgroundColor:['#A0493A','#BC6A52','#D49680'],borderRadius:6}]},options:baseOpts(v=>'€'+v+'M')});
+  let h='<thead><tr><th>Regió</th><th>Població</th><th>% del total</th></tr></thead><tbody>';
+  POB.forEach(([l,v])=>h+=`<tr><td>${l}</td><td>${v.toLocaleString('ca-ES')}</td><td>${(v/POBTOT*100).toFixed(0)}%</td></tr>`);
+  h+=`<tr class="tot"><td>Total</td><td>${POBTOT.toLocaleString('ca-ES')}</td><td>100%</td></tr>`;
+  document.getElementById('tblPob').innerHTML=h+'</tbody>';
+}
+function drawPyl(){
+  let h='<thead><tr><th>Concepte</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  PLA3.rows.forEach(([l,v,f])=>{const cls=f=='t'?'tot':f=='h'?'sub-h':'';
+   h+=`<tr class="${cls}"><td>${l}</td>${v.map(x=>`<td class="${x<0?'neg':''}">${eur(x)}</td>`).join('')}</tr>`;});
+  document.getElementById('tblPyl').innerHTML=h+'</tbody>';
+  mk('chBE',{type:'bar',data:{labels:PLA3.anys,datasets:[
+    {label:'Vendes',data:PLA3.rows.find(r=>r[0]=="Vendes")[1],backgroundColor:'#A0493A',borderRadius:5},
+    {label:"Punt d'equilibri",data:PLA3.rows.find(r=>r[0]=="Punt d'equilibri")[1],backgroundColor:'#C2872B',borderRadius:5}]},
+    options:baseOpts(eurk)});
+  const IND=[["% Marge brut","50%","50%","50%"],["Nº empleats","1","3","6*"],
+   ["Vendes/empleat","€58.971","€89.082","€56.489*"],["% Endeutament","30%","40%","30%"]];
+  let ih='<thead><tr><th>Indicador</th><th>2026</th><th>2027</th><th>2028</th></tr></thead><tbody>';
+  IND.forEach(r=>ih+=`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`);
+  ih+='<tr><td colspan="4" class="note" style="text-align:left">* amb l\'escenari planta (6 persones). El pla base preveu 3.</td></tr>';
+  document.getElementById('tblInd').innerHTML=ih+'</tbody>';
+}
+function drawPlanta(){
+  kpi([
+   {l:"Inversió planta",v:"€350k",s:"amort. 10 anys"},
+   {l:"Marge brut",v:"55% → 85%",s:"COGS a 1/3"},
+   {l:"Break-even (equip real)",v:"€540k",s:"vs €568k sense"},
+   {l:"Avantatge a €600k",v:"+€26k/any",s:"+€146k a €1M"}
+  ],'kpisPlanta');
+  const xs=[250,400,600,800,1000];
+  const noP=xs.map(r=>r*1000*0.275-PLANT.fixNo);
+  const yesP=xs.map(r=>r*1000*PLANT.cm-PLANT.fixYes);
+  mk('chPlant',{data:{labels:xs.map(v=>'€'+v+'k'),datasets:[
+    {type:'line',label:'Sense planta',data:noP,borderColor:'#C00000',borderWidth:2,tension:.2,pointRadius:3},
+    {type:'line',label:'Amb planta',data:yesP,borderColor:'#5b7d3a',borderWidth:2,tension:.2,pointRadius:3}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},
+    scales:{y:{ticks:{callback:eurk}}}}});
+  let bh='<tbody>'+
+   `<tr><td>Break-even AMB planta</td><td>${eur(PLANT.beYes)}/any</td></tr>`+
+   `<tr><td>Break-even SENSE planta</td><td>${eur(PLANT.beNo)}/any</td></tr>`+
+   `<tr class="tot"><td>Creuament (planta > compra)</td><td>${eur(PLANT.cross)}/any</td></tr></tbody>`;
+  document.getElementById('tblBE').innerHTML=bh;
+  let th='<thead><tr><th></th><th>Construir 2027</th><th>Construir 2028</th></tr></thead><tbody>';
+  TIMING.forEach(([l,a,b],i)=>{const f=i==2;
+   th+=`<tr class="${f?'tot':''}"><td>${l}</td><td class="${f&&a<0?'neg':''}">${f?eur(a):(l.includes('equil')?eur(a):eur(a))}</td>
+    <td class="${f&&b<0?'neg':''}">${eur(b)}</td></tr>`;});
+  th+=`<tr><td>Veredicte</td><td><span class="chip b">sagna</span></td><td><span class="chip g">funciona</span></td></tr>`;
+  document.getElementById('tblTiming').innerHTML=th+'</tbody>';
+  const fq=PLANT.fixYes/4;
+  let sh='<thead><tr><th>Trimestre</th><th>Vendes</th><th>EBIT</th><th></th></tr></thead><tbody>';
+  SALES2028.forEach(([q,v])=>{const e=v*PLANT.cm-fq;
+   sh+=`<tr><td>${q} 2028</td><td>${eur(v)}</td><td class="${e<0?'neg':'pos'}">${eur(e)}</td>
+    <td>${e>0?'<span class="chip g">✓</span>':'<span class="chip w">·</span>'}</td></tr>`;});
+  document.getElementById('tblSales').innerHTML=sh+'</tbody>';
+}
+function drawEquip(){
+  kpi([{l:"Equip 2028",v:"6 persones",s:"vs 3 al pla base"},
+   {l:"Cost personal 2028",v:"€169k",s:"net de subvenció"},
+   {l:"Estalvi subvenció",v:"~€50k",s:"18 mesos"}],'kpisEquip');
+  mk('chTeam',{type:'bar',data:{labels:TEAMNET.map(r=>r[0]),datasets:[{data:TEAMNET.map(r=>r[1]),
+    backgroundColor:'#A0493A',borderRadius:5}]},options:baseOpts(eurk)});
+  mk('chHead',{type:'bar',data:{labels:HEAD.map(r=>r[0]),datasets:[{data:HEAD.map(r=>r[1]),
+    backgroundColor:'#6E7B4F',borderRadius:5}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{stepSize:1}}}}});
+  let h='<thead><tr><th>Rol</th><th>Inici</th><th>Brut €/mes</th><th>Carregat 2028 €/any</th><th></th></tr></thead><tbody>';
+  ROLES.forEach(([r,s,g,l,p])=>h+=`<tr><td>${r}</td><td>${s}</td><td>${g=="—"?"—":eur(g)}</td><td>${eur(l)}</td>
+    <td>${p=="planta"?'<span class="chip w">planta</span>':''}</td></tr>`);
+  const tot=ROLES.reduce((a,r)=>a+r[3],0);
+  h+=`<tr class="tot"><td>Total carregat (2028)</td><td colspan="2"></td><td>${eur(tot)}</td><td></td></tr>`;
+  document.getElementById('tblRoles').innerHTML=h+'</tbody>';
+}
+function drawFin(){
+  kpi([{l:"Ronda (tancament Q2-2027)",v:"€500k",s:"mixta"},
+   {l:"No dilutiu",v:"~77%",s:"només àngels dilueix"},
+   {l:"Per la planta",v:"~€350k",s:"després de runway"},
+   {l:"Runway comercial+equip",v:"~€150k",s:"del model 3 anys"}],'kpisFin');
+  mk('chFin',{type:'doughnut',data:{labels:FIN.map(f=>f[0]),datasets:[{data:FIN.map(f=>f[1]),
+    backgroundColor:FIN.map(f=>f[2])}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
+    tooltip:{callbacks:{label:c=>c.label+': '+eur(c.parsed)}}}}});
+  let h='<thead><tr><th>Capa</th><th>Import</th><th>Dilutiu?</th></tr></thead><tbody>';
+  FIN.forEach(([l,v,c,d])=>h+=`<tr><td><span class="sw" style="background:${c}"></span>${l}</td><td>${eur(v)}</td>
+    <td>${d=="Sí"?'<span class="chip b">Sí</span>':'<span class="chip g">No</span>'}</td></tr>`);
+  h+=`<tr class="tot"><td>Total</td><td>${eur(FINTOT)}</td><td></td></tr>`;
+  document.getElementById('tblFin').innerHTML=h+'</tbody>';
+}
+// ---- Supòsits interactius ----
+function recalc(){
+  const rev=+sRev.value,gm=+sGm.value/100,team=+sTeam.value,fix=+sFix.value;
+  vRev.textContent=eur(rev);vGm.textContent=(gm*100).toFixed(0)+'%';vTeam.textContent=team;vFix.textContent=eur(fix);
+  const personal=team*29000, overhead=90000, marketing=rev*0.25, fees=rev*0.025;
+  const gp=rev*gm, ebit=gp-marketing-fees-personal-overhead-fix;
+  const be=(personal+overhead+fix)/(gm-0.275);
+  document.getElementById('scnres').innerHTML=[
+   {y:"EBIT any 3",n:eur(ebit),c:ebit>=0?'pos':'neg'},
+   {y:"Break-even",n:eur(be)},
+   {y:"Marge EBIT",n:(ebit/rev*100).toFixed(0)+'%',c:ebit>=0?'pos':'neg'}
+  ].map(x=>`<div class="b"><div class="y">${x.y}</div><div class="n ${x.c||''}">${x.n}</div></div>`).join('');
+}
+['sRev','sGm','sTeam','sFix'].forEach(id=>document.getElementById(id).addEventListener('input',recalc));
+
+function draw(t){({resum:drawResum,mercat:drawMercat,pyl:drawPyl,planta:drawPlanta,equip:drawEquip,fin:drawFin,sup:recalc}[t]||(()=>{}))();}
+drawResum();
+</script>
+</body>
+</html>
